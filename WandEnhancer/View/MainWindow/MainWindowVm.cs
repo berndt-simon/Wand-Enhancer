@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Microsoft.Win32;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using WandEnhancer.Core;
 using WandEnhancer.Models;
-using WandEnhancer.ReactiveUICore;
 using WandEnhancer.Utils;
 using WandEnhancer.View.Popups;
 using Application = System.Windows.Application;
@@ -16,97 +15,72 @@ using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace WandEnhancer.View.MainWindow
 {
-    public class MainWindowVm : ObservableObject
+    public partial class MainWindowVm : ObservableObject
     {
         private readonly MainWindow _view;
         public ObservableCollection<LogEntry> LogList { get; set; } = new ObservableCollection<LogEntry>();
         private static Updater _updater = new Updater();
 
-        private WeModConfig? _weModConfig;
+        [ObservableProperty]
+        public partial WeModConfig? WeModInfo { get; set; }
 
-        public WeModConfig? WeModInfo
+        [ObservableProperty]
+        public partial bool IsPatchEnabled { get; set; }
+
+        [ObservableProperty]
+        public partial bool AlreadyPatched { get; set; }
+
+        [ObservableProperty]
+        public partial bool IsUpdateAvailable { get; set; }
+
+        partial void OnWeModInfoChanged(WeModConfig? value)
         {
-            get => _weModConfig;
-            set
+            if (value == null) return;
+
+            Log($"WeMod directory found at '{value}' ({value.ExecutableName})", ELogType.Success);
+            if (File.Exists(Path.Combine(value.RootDirectory, "resources", "app.asar.backup")))
             {
-                SetProperty(ref _weModConfig, value);
-                if (value == null) return;
-
-                Log($"WeMod directory found at '{value}' ({value.ExecutableName})", ELogType.Success);
-                if (File.Exists(Path.Combine(value.RootDirectory, "resources", "app.asar.backup")))
-                {
-                    Log("WeMod already patched. If you want to patch again, please restore the backup first.",
-                        ELogType.Warn);
-                    IsPatchEnabled = false;
-                    AlreadyPatched = true;
-                    return;
-                }
-
-                Log("Ready for patching.", ELogType.Info);
-                IsPatchEnabled = true;
+                Log("WeMod already patched. If you want to patch again, please restore the backup first.",
+                    ELogType.Warn);
+                IsPatchEnabled = false;
+                AlreadyPatched = true;
+                return;
             }
+
+            Log("Ready for patching.", ELogType.Info);
+            IsPatchEnabled = true;
         }
 
-        private bool _isPatchEnabled;
-
-        public bool IsPatchEnabled
+        [RelayCommand]
+        private void SetFolderPath()
         {
-            get => _isPatchEnabled;
-            set => SetProperty(ref _isPatchEnabled, value);
-        }
-
-        private bool _alreadyPatched;
-
-        public bool AlreadyPatched
-        {
-            get => _alreadyPatched;
-            set => SetProperty(ref _alreadyPatched, value);
-        }
-
-        private bool _isUpdateAvailable;
-
-        public bool IsUpdateAvailable
-        {
-            get => _isUpdateAvailable;
-            set => SetProperty(ref _isUpdateAvailable, value);
-        }
-
-        public RelayCommand SetFolderPathCommand { get; }
-        public RelayCommand ApplyPatchCommand { get; }
-        public RelayCommand RestoreBackupCommand { get; }
-        public RelayCommand UpdateCommand { get; }
-        public RelayCommand OpenSettingsCommand { get; }
-        public RelayCommand CopyLogsCommand { get; }
-        public RelayCommand ExportLogsCommand { get; }
-
-        private void OnFolderPathSelection(object? obj)
-        {
-            var dialog = new OpenFolderDialog();
+            var dialog = new OpenFolderDialog
             {
-                dialog.DefaultDirectory = Environment.GetEnvironmentVariable("LOCALAPPDATA");
-                dialog.Title = "Select the WeMod directory";
+                DefaultDirectory = Environment.GetEnvironmentVariable("LOCALAPPDATA"),
+                Title = "Select the WeMod directory"
+            };
 
-                if (dialog.ShowDialog() is not true) return;
-                string selectedPath = dialog.FolderName;
-                string fileName = Path.GetFileName(selectedPath);
+            if (dialog.ShowDialog() is not true) return;
+            string selectedPath = dialog.FolderName;
+            string fileName = Path.GetFileName(selectedPath);
 
-                var info = Extensions.CheckWeModPath(selectedPath);
+            var info = Extensions.CheckWeModPath(selectedPath);
 
-                if (info != null)
-                {
-                    WeModInfo = info;
-                    return;
-                }
-
-                LogList.Add(new LogEntry
-                {
-                    LogType = ELogType.Error,
-                    Message = $"The selected folder '{fileName}' is not a valid WeMod directory."
-                });
+            if (info != null)
+            {
+                WeModInfo = info;
+                return;
             }
+
+            LogList.Add(new LogEntry
+            {
+                LogType = ELogType.Error,
+                Message = $"The selected folder '{fileName}' is not a valid WeMod directory."
+            });
         }
 
-        private void OnBackupRestoring(object? param)
+        [RelayCommand]
+        private void RestoreBackup()
         {
             if (WeModInfo == null)
             {
@@ -127,10 +101,10 @@ namespace WandEnhancer.View.MainWindow
                 using (File.Open(backupPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
                 {
                 }
-                
+
                 var proxyDllPath = Path.Combine(WeModInfo.RootDirectory, "version.dll");
-                
-                if(File.Exists(proxyDllPath))
+
+                if (File.Exists(proxyDllPath))
                 {
                     File.Delete(proxyDllPath);
                 }
@@ -148,7 +122,8 @@ namespace WandEnhancer.View.MainWindow
             IsPatchEnabled = true;
         }
 
-        private void OnPatching(object? param)
+        [RelayCommand]
+        private void ApplyPatch()
         {
             var weMod = WeModInfo;
             if (weMod == null)
@@ -193,7 +168,8 @@ namespace WandEnhancer.View.MainWindow
             });
         }
 
-        private async void OnUpdate(object? param)
+        [RelayCommand]
+        private async Task Update()
         {
             var updateInfo = await _updater.GetUpdateInfoAsync();
             if (updateInfo == null)
@@ -223,7 +199,8 @@ namespace WandEnhancer.View.MainWindow
             }, () => _updater.GetFullChangelogAsync()), Application.Current.FindResource("up_popup_title") as string);
         }
 
-        private void OnOpenSettings(object? param)
+        [RelayCommand]
+        private void OpenSettings()
         {
             MainWindow.Instance.OpenPopup(new SettingsPopup(), Application.Current.FindResource("settings_title") as string);
         }
@@ -238,7 +215,8 @@ namespace WandEnhancer.View.MainWindow
             return builder.ToString();
         }
 
-        private void OnCopyLogs(object? param)
+        [RelayCommand]
+        private void CopyLogs()
         {
             if (LogList.Count == 0)
             {
@@ -256,33 +234,33 @@ namespace WandEnhancer.View.MainWindow
             }
         }
 
-        private void OnExportLogs(object? param)
+        [RelayCommand]
+        private void ExportLogs()
         {
             if (LogList.Count == 0)
             {
                 return;
             }
 
-            var dialog = new SaveFileDialog()
+            var dialog = new SaveFileDialog
             {
                 Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
                 FileName = $"wand-enhancer-log-{DateTime.Now:yyyyMMdd-HHmmss}.txt"
             };
-            {
-                if (dialog.ShowDialog() is not true)
-                {
-                    return;
-                }
 
-                try
-                {
-                    File.WriteAllText(dialog.FileName, BuildLogReport());
-                    Log($"Logs exported to '{dialog.FileName}'.", ELogType.Success);
-                }
-                catch (Exception e)
-                {
-                    Log($"Failed to export logs: {e.Message}", ELogType.Error);
-                }
+            if (dialog.ShowDialog() is not true)
+            {
+                return;
+            }
+
+            try
+            {
+                File.WriteAllText(dialog.FileName, BuildLogReport());
+                Log($"Logs exported to '{dialog.FileName}'.", ELogType.Success);
+            }
+            catch (Exception e)
+            {
+                Log($"Failed to export logs: {e.Message}", ELogType.Error);
             }
         }
 
@@ -294,13 +272,6 @@ namespace WandEnhancer.View.MainWindow
                 Application.Current.Dispatcher.Invoke(() => IsUpdateAvailable = isUpdateAvailable);
             });
             _view = view;
-            SetFolderPathCommand = new RelayCommand(OnFolderPathSelection);
-            ApplyPatchCommand = new RelayCommand(OnPatching);
-            RestoreBackupCommand = new RelayCommand(OnBackupRestoring);
-            UpdateCommand = new RelayCommand(OnUpdate);
-            OpenSettingsCommand = new RelayCommand(OnOpenSettings);
-            CopyLogsCommand = new RelayCommand(OnCopyLogs);
-            ExportLogsCommand = new RelayCommand(OnExportLogs);
 
             WeModInfo = Extensions.FindWeMod();
             if (WeModInfo == null)
