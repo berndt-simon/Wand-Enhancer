@@ -37,8 +37,8 @@ public static class Common
 
     public static string GetCurrentDir()
     {
-        var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-        return Path.GetDirectoryName(assemblyLocation) ?? throw new InvalidOperationException();
+        // AppContext.BaseDirectory works under single-file publish (Assembly.Location is empty there).
+        return AppContext.BaseDirectory;
     }
         
     public static string ComputeSha256Hash(string input)

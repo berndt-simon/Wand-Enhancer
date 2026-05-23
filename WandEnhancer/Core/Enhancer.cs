@@ -216,7 +216,7 @@ public class Enhancer
 
     private static string FindWorkspacePath(params string[] segments)
     {
-        var current = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        var current = AppContext.BaseDirectory;
         while (!string.IsNullOrEmpty(current))
         {
             var candidate = Path.Combine(new[] { current }.Concat(segments).ToArray());
@@ -330,7 +330,7 @@ public class Enhancer
 
     private static string? FindLocalCustomScriptsPath()
     {
-        var executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        var executableDirectory = AppContext.BaseDirectory;
         if (string.IsNullOrEmpty(executableDirectory))
         {
             return null;
