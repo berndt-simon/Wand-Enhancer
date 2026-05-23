@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Text;
 
@@ -75,7 +76,7 @@ public class Pickle
     {
         var resultSize = GetTotalSize();
         var result = new byte[resultSize];
-        Buffer.BlockCopy(_header, 0, result, 0, resultSize);
+        _header.AsSpan(0, resultSize).CopyTo(result);
         return result;
     }
 
@@ -164,8 +165,7 @@ public class Pickle
             Resize(Math.Max((int)_capacityAfterHeader * 2, newSize));
         }
 
-        var bits = BitConverter.ToInt32(BitConverter.GetBytes(value), 0);
-        WriteInt32LE(bits, _headerSize + _writeOffset);
+        BinaryPrimitives.WriteSingleLittleEndian(_header.AsSpan(_headerSize + _writeOffset), value);
 
         SetPayloadSize(newSize);
         _writeOffset = newSize;
@@ -182,8 +182,7 @@ public class Pickle
             Resize(Math.Max((int)_capacityAfterHeader * 2, newSize));
         }
 
-        var bits = BitConverter.DoubleToInt64Bits(value);
-        WriteInt64LE(bits, _headerSize + _writeOffset);
+        BinaryPrimitives.WriteDoubleLittleEndian(_header.AsSpan(_headerSize + _writeOffset), value);
 
         SetPayloadSize(newSize);
         _writeOffset = newSize;
@@ -208,13 +207,10 @@ public class Pickle
         }
 
         var writeStart = _headerSize + _writeOffset;
-        Encoding.UTF8.GetBytes(value, 0, value.Length, _header, writeStart);
+        Encoding.UTF8.GetBytes(value, _header.AsSpan(writeStart));
 
         // zero alignment padding
-        for (var i = writeStart + byteLen; i < writeStart + aligned; i++)
-        {
-            _header[i] = 0;
-        }
+        _header.AsSpan(writeStart + byteLen, aligned - byteLen).Clear();
 
         SetPayloadSize(newSize);
         _writeOffset = newSize;
@@ -244,54 +240,20 @@ public class Pickle
 
     #region Auxiliary methods for reading/writing values in Little Endian
 
-    private uint ReadUInt32LE(int offset)
-    {
-        // _header is allocated by us so always little-endian-friendly when on LE host.
-        return (uint)(_header[offset] |
-                      (_header[offset + 1] << 8) |
-                      (_header[offset + 2] << 16) |
-                      (_header[offset + 3] << 24));
-    }
+    private uint ReadUInt32LE(int offset) =>
+        BinaryPrimitives.ReadUInt32LittleEndian(_header.AsSpan(offset));
 
-    private void WriteInt32LE(int value, int offset)
-    {
-        _header[offset]     = (byte)value;
-        _header[offset + 1] = (byte)(value >> 8);
-        _header[offset + 2] = (byte)(value >> 16);
-        _header[offset + 3] = (byte)(value >> 24);
-    }
+    private void WriteInt32LE(int value, int offset) =>
+        BinaryPrimitives.WriteInt32LittleEndian(_header.AsSpan(offset), value);
 
-    private void WriteUInt32LE(uint value, int offset)
-    {
-        _header[offset]     = (byte)value;
-        _header[offset + 1] = (byte)(value >> 8);
-        _header[offset + 2] = (byte)(value >> 16);
-        _header[offset + 3] = (byte)(value >> 24);
-    }
+    private void WriteUInt32LE(uint value, int offset) =>
+        BinaryPrimitives.WriteUInt32LittleEndian(_header.AsSpan(offset), value);
 
-    private void WriteInt64LE(long value, int offset)
-    {
-        _header[offset]     = (byte)value;
-        _header[offset + 1] = (byte)(value >> 8);
-        _header[offset + 2] = (byte)(value >> 16);
-        _header[offset + 3] = (byte)(value >> 24);
-        _header[offset + 4] = (byte)(value >> 32);
-        _header[offset + 5] = (byte)(value >> 40);
-        _header[offset + 6] = (byte)(value >> 48);
-        _header[offset + 7] = (byte)(value >> 56);
-    }
+    private void WriteInt64LE(long value, int offset) =>
+        BinaryPrimitives.WriteInt64LittleEndian(_header.AsSpan(offset), value);
 
-    private void WriteUInt64LE(ulong value, int offset)
-    {
-        _header[offset]     = (byte)value;
-        _header[offset + 1] = (byte)(value >> 8);
-        _header[offset + 2] = (byte)(value >> 16);
-        _header[offset + 3] = (byte)(value >> 24);
-        _header[offset + 4] = (byte)(value >> 32);
-        _header[offset + 5] = (byte)(value >> 40);
-        _header[offset + 6] = (byte)(value >> 48);
-        _header[offset + 7] = (byte)(value >> 56);
-    }
+    private void WriteUInt64LE(ulong value, int offset) =>
+        BinaryPrimitives.WriteUInt64LittleEndian(_header.AsSpan(offset), value);
 
 
     #endregion
