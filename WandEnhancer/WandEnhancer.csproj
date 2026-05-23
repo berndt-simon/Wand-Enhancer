@@ -4,6 +4,8 @@
         <TargetFramework>net10.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
+        <!-- Allow building this windows-targeted WPF project on non-Windows hosts (CI on Linux). -->
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <RootNamespace>WandEnhancer</RootNamespace>
         <AssemblyName>WandEnhancer</AssemblyName>
         <StartupObject>WandEnhancer.Program</StartupObject>

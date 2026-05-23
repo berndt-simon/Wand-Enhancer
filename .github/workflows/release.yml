@@ -6,26 +6,12 @@ on:
       - '*'
 
 jobs:
-  build-native:
-    if: github.repository == 'k1tbyte/Wand-Enhancer'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      # Cross-compile the version.dll proxy on Linux via MinGW-w64 in a container.
-      - name: Build native proxy DLL (docker)
-        run: docker build -o type=local,dest=./native-out tools/asar-fuses-bypass
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: version-dll
-          path: native-out/version.dll
-          if-no-files-found: error
-
   publish-release:
     if: github.repository == 'k1tbyte/Wand-Enhancer'
-    needs: build-native
-    runs-on: windows-latest
+    # EnableWindowsTargeting lets the WPF (net10.0-windows) app build on Linux,
+    # so the whole pipeline — native DLL (dockerized MinGW) + dotnet publish —
+    # runs on a single Ubuntu runner.
+    runs-on: ubuntu-latest
     permissions:
       contents: write
 
@@ -51,12 +37,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # Place the prebuilt proxy DLL where build.ps1 / the .csproj expect it.
-      - uses: actions/download-artifact@v4
-        with:
-          name: version-dll
-          path: .tmp/cmake/asar-fuses-bypass/Release
-
       - name: Validate release metadata
         shell: pwsh
         run: ./scripts/validate-release-metadata.ps1 -ExpectedVersion $env:RELEASE_VERSION
@@ -67,7 +47,7 @@ jobs:
 
       - name: Build release
         shell: pwsh
-        run: ./build.ps1 -Configuration Release -SkipNativeBuild
+        run: ./build.ps1 -Configuration Release
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2

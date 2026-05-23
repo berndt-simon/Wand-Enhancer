@@ -216,7 +216,7 @@ namespace WandEnhancer.Core
 
         private static string FindWorkspacePath(params string[] segments)
         {
-            string? current = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string? current = AppContext.BaseDirectory;
             while (!string.IsNullOrEmpty(current))
             {
                 string candidate = Path.Combine(new[] { current }.Concat(segments).ToArray());
@@ -330,7 +330,7 @@ namespace WandEnhancer.Core
 
         private static string? FindLocalCustomScriptsPath()
         {
-            string? executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string? executableDirectory = AppContext.BaseDirectory;
             if (string.IsNullOrEmpty(executableDirectory))
             {
                 return null;
