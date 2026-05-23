@@ -2,7 +2,7 @@
 // Created by kitbyte on 30.11.2025.
 //
 
-#include <Windows.h>
+#include <windows.h>
 #include <stdio.h>
 #include <time.h>
 

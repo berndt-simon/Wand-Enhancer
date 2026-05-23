@@ -1,8 +1,15 @@
 //
 // Created by kitbyte on 30.11.2025.
 //
-#include <Windows.h>
-#include <winver.h>
+// This proxy redefines the version.dll exports as forwarders, so the SDK's own
+// prototypes must not be seen as dllimport (MinGW rejects redefining a
+// dllimport-declared function as a "conflicting type"; MSVC tolerated it).
+// WIN32_LEAN_AND_MEAN drops winver.h (Ver*/GetFileVersionInfo*) and defining
+// WINBASEAPI empty strips the dllimport attribute from the winbase.h-declared
+// VerFindFile*/VerInstallFile*. Exports are supplied by library.def.
+#define WIN32_LEAN_AND_MEAN
+#define WINBASEAPI
+#include <windows.h>
 
 extern BOOL disable_asar_integrity(void);
 
@@ -33,17 +40,18 @@ static HMODULE g_originalVersionDll;
     X(GetFileVersionInfoW, BOOL, FALSE, \
         (LPCWSTR filename, DWORD handle, DWORD length, LPVOID data), \
         (filename, handle, length, data)) \
+    /* Ver*File* use non-const LPSTR/LPWSTR to match MinGW's winver.h prototypes. */ \
     X(VerFindFileA, DWORD, 0, \
-        (DWORD flags, LPCSTR fileName, LPCSTR winDir, LPCSTR appDir, LPSTR curDir, PUINT curDirLen, LPSTR destDir, PUINT destDirLen), \
+        (DWORD flags, LPSTR fileName, LPSTR winDir, LPSTR appDir, LPSTR curDir, PUINT curDirLen, LPSTR destDir, PUINT destDirLen), \
         (flags, fileName, winDir, appDir, curDir, curDirLen, destDir, destDirLen)) \
     X(VerFindFileW, DWORD, 0, \
-        (DWORD flags, LPCWSTR fileName, LPCWSTR winDir, LPCWSTR appDir, LPWSTR curDir, PUINT curDirLen, LPWSTR destDir, PUINT destDirLen), \
+        (DWORD flags, LPWSTR fileName, LPWSTR winDir, LPWSTR appDir, LPWSTR curDir, PUINT curDirLen, LPWSTR destDir, PUINT destDirLen), \
         (flags, fileName, winDir, appDir, curDir, curDirLen, destDir, destDirLen)) \
     X(VerInstallFileA, DWORD, 0, \
-        (DWORD flags, LPCSTR srcFileName, LPCSTR destFileName, LPCSTR srcDir, LPCSTR destDir, LPCSTR curDir, LPSTR tempFile, PUINT tempFileLen), \
+        (DWORD flags, LPSTR srcFileName, LPSTR destFileName, LPSTR srcDir, LPSTR destDir, LPSTR curDir, LPSTR tempFile, PUINT tempFileLen), \
         (flags, srcFileName, destFileName, srcDir, destDir, curDir, tempFile, tempFileLen)) \
     X(VerInstallFileW, DWORD, 0, \
-        (DWORD flags, LPCWSTR srcFileName, LPCWSTR destFileName, LPCWSTR srcDir, LPCWSTR destDir, LPCWSTR curDir, LPWSTR tempFile, PUINT tempFileLen), \
+        (DWORD flags, LPWSTR srcFileName, LPWSTR destFileName, LPWSTR srcDir, LPWSTR destDir, LPWSTR curDir, LPWSTR tempFile, PUINT tempFileLen), \
         (flags, srcFileName, destFileName, srcDir, destDir, curDir, tempFile, tempFileLen)) \
     X(VerLanguageNameA, DWORD, 0, \
         (DWORD language, LPSTR buffer, DWORD bufferLength), \
