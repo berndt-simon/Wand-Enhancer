@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace WandEnhancer.Core.Services
 {
@@ -8,12 +8,18 @@ namespace WandEnhancer.Core.Services
     {
         public string Language { get; set; }
     }
-    
+
     public static class SettingsManager
     {
         private static readonly string SettingsPath = Path.Combine(
-            AppDomain.CurrentDomain.BaseDirectory, 
+            AppDomain.CurrentDomain.BaseDirectory,
             Constants.AppSettingsFileName);
+
+        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true
+        };
 
         public static AppSettings LoadSettings()
         {
@@ -22,7 +28,7 @@ namespace WandEnhancer.Core.Services
                 if (File.Exists(SettingsPath))
                 {
                     var json = File.ReadAllText(SettingsPath);
-                    return JsonConvert.DeserializeObject<AppSettings>(json);
+                    return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions);
                 }
             }
             catch (Exception)
@@ -37,7 +43,7 @@ namespace WandEnhancer.Core.Services
         {
             try
             {
-                var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
+                var json = JsonSerializer.Serialize(settings, JsonOptions);
                 File.WriteAllText(SettingsPath, json);
             }
             catch (Exception)

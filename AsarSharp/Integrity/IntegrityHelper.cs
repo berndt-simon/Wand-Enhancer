@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace AsarSharp.Integrity
 {
@@ -15,16 +15,16 @@ namespace AsarSharp.Integrity
 
         public class FileIntegrity
         {
-            [JsonProperty("algorithm")]
+            [JsonPropertyName("algorithm")]
             public string Algorithm { get; set; }
 
-            [JsonProperty("hash")]
+            [JsonPropertyName("hash")]
             public string Hash { get; set; }
 
-            [JsonProperty("blockSize")]
+            [JsonPropertyName("blockSize")]
             public int BlockSize { get; set; }
 
-            [JsonProperty("blocks")]
+            [JsonPropertyName("blocks")]
             public List<string> Blocks { get; set; }
         }
 

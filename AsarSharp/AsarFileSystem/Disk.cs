@@ -5,13 +5,19 @@ using System.IO;
 using AsarSharp.Integrity;
 using AsarSharp.PickleTools;
 using AsarSharp.Utils;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AsarSharp.AsarFileSystem
 {
     public static class Disk
     {
         private const int StreamBufferSize = 1024 * 1024;
+
+        private static readonly JsonSerializerOptions HeaderJsonOptions = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+        };
         private static readonly ConcurrentDictionary<string, Filesystem> _filesystemCache =
             new ConcurrentDictionary<string, Filesystem>(StringComparer.OrdinalIgnoreCase);
 
@@ -54,7 +60,7 @@ namespace AsarSharp.AsarFileSystem
 
                 var headerPickle = Pickle.CreateFromBuffer(headerBuf);
                 var header = headerPickle.CreateIterator().ReadString();
-                var headerObj = JsonConvert.DeserializeObject<FilesystemEntry>(header);
+                var headerObj = JsonSerializer.Deserialize<FilesystemEntry>(header, HeaderJsonOptions);
 
                 return new ArchiveHeader
                 {
@@ -147,14 +153,8 @@ namespace AsarSharp.AsarFileSystem
         public static void WriteFileSystem(string dest, Filesystem fileSystem,
             FilesystemFilesAndLinks lists, Dictionary<string, CrawledFileType> metadata)
         {
-            var serializerSettings = new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore,
-                DefaultValueHandling = DefaultValueHandling.Ignore
-            };
-
             // --- Phase 1: write placeholder header ---
-            string headerJson = JsonConvert.SerializeObject(fileSystem.GetHeader(), serializerSettings);
+            string headerJson = JsonSerializer.Serialize(fileSystem.GetHeader(), HeaderJsonOptions);
             var headerPickle = Pickle.CreateEmpty();
             headerPickle.WriteString(headerJson);
 
@@ -185,7 +185,7 @@ namespace AsarSharp.AsarFileSystem
                 }
 
                 // --- Phase 3: re-serialize header with real hashes, seek back, overwrite ---
-                string patchedJson = JsonConvert.SerializeObject(fileSystem.GetHeader(), serializerSettings);
+                string patchedJson = JsonSerializer.Serialize(fileSystem.GetHeader(), HeaderJsonOptions);
                 var patchedPickle = Pickle.CreateEmpty();
                 patchedPickle.WriteString(patchedJson);
 

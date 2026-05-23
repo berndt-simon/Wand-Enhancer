@@ -30,6 +30,10 @@ jobs:
           cache: pnpm
           cache-dependency-path: web-panel/pnpm-lock.yaml
 
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
       - name: Validate release metadata
         shell: pwsh
         run: ./scripts/validate-release-metadata.ps1 -ExpectedVersion $env:RELEASE_VERSION
@@ -49,6 +53,6 @@ jobs:
           tag_name: ${{ github.ref_name }}
           body_path: release-notes.md
           files: |
-            WandEnhancer/bin/Release/WandEnhancer.exe
+            WandEnhancer/bin/Release/net10.0-windows/win-x64/publish/WandEnhancer.exe
             CHANGELOG.md
           fail_on_unmatched_files: true

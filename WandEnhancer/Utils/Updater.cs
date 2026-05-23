@@ -7,7 +7,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WandEnhancer.Utils
 {
@@ -23,21 +24,21 @@ namespace WandEnhancer.Utils
         public class AssetsType
         {
             public string Name { get; set; }
-            
-            [JsonProperty("browser_download_url")]
+
+            [JsonPropertyName("browser_download_url")]
             public string Url { get; set; }
         }
-        
-        [JsonProperty("tag_name")]
+
+        [JsonPropertyName("tag_name")]
         public string TagName { get; set; }
-        
-        [JsonProperty("assets")]
+
+        [JsonPropertyName("assets")]
         public AssetsType[] Assets { get; set; }
 
-        [JsonProperty("body")]
+        [JsonPropertyName("body")]
         public string Body { get; set; }
 
-        [JsonProperty("published_at")]
+        [JsonPropertyName("published_at")]
         public DateTimeOffset PublishedAt { get; set; }
 
     }
@@ -57,6 +58,10 @@ namespace WandEnhancer.Utils
         
         private static readonly string ApiUrl = $"https://api.github.com/repos/{Constants.Owner}/{Constants.RepoName}/releases/latest";
         private static readonly string ReleasesApiUrl = $"https://api.github.com/repos/{Constants.Owner}/{Constants.RepoName}/releases?per_page=20";
+        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
         public async Task<bool> CheckForUpdates()
         {
             try
@@ -64,7 +69,7 @@ namespace WandEnhancer.Utils
                 var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
                 var response = await _httpClient.GetAsync(ApiUrl);
                 response.EnsureSuccessStatusCode();
-                _release = JsonConvert.DeserializeObject<GitHubRelease>(await response.Content.ReadAsStringAsync());
+                _release = JsonSerializer.Deserialize<GitHubRelease>(await response.Content.ReadAsStringAsync(), JsonOptions);
                 _updateInfo = null;
                 _fullChangelog = null;
 
@@ -150,7 +155,8 @@ namespace WandEnhancer.Utils
         {
             try
             {
-                var currentExecutable = Assembly.GetExecutingAssembly().Location;
+                // Assembly.Location is empty under single-file publish; use the real process path.
+                var currentExecutable = Environment.ProcessPath;
                 
                 var psCommand = $"Start-Sleep -Seconds 2; " +
                                 $"Copy-Item -Path '{filePath}' -Destination '{currentExecutable}' -Force; " +
@@ -227,7 +233,7 @@ namespace WandEnhancer.Utils
                     return null;
                 }
 
-                var releases = JsonConvert.DeserializeObject<GitHubRelease[]>(await response.Content.ReadAsStringAsync());
+                var releases = JsonSerializer.Deserialize<GitHubRelease[]>(await response.Content.ReadAsStringAsync(), JsonOptions);
                 if (releases == null || releases.Length == 0)
                 {
                     return null;
