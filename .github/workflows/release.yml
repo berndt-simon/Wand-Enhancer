@@ -7,7 +7,6 @@ on:
 
 jobs:
   publish-release:
-    if: github.repository == 'k1tbyte/Wand-Enhancer'
     # EnableWindowsTargeting lets the WPF (net10.0-windows) app build on Linux,
     # so the whole pipeline — native DLL (dockerized MinGW) + dotnet publish —
     # runs on a single Ubuntu runner.
