@@ -12,6 +12,7 @@ using WandEnhancer.ReactiveUICore;
 using WandEnhancer.Utils;
 using WandEnhancer.View.Popups;
 using Application = System.Windows.Application;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace WandEnhancer.View.MainWindow
 {
@@ -85,7 +86,7 @@ namespace WandEnhancer.View.MainWindow
                 dialog.DefaultDirectory = Environment.GetEnvironmentVariable("LOCALAPPDATA");
                 dialog.Title = "Select the WeMod directory";
 
-                if (dialog.ShowDialog() is true) return;
+                if (dialog.ShowDialog() is not true) return;
                 string selectedPath = dialog.FolderName;
                 string fileName = Path.GetFileName(selectedPath);
 
@@ -262,13 +263,13 @@ namespace WandEnhancer.View.MainWindow
                 return;
             }
 
-            using (var dialog = new SaveFileDialog
+            var dialog = new SaveFileDialog()
             {
                 Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
                 FileName = $"wand-enhancer-log-{DateTime.Now:yyyyMMdd-HHmmss}.txt"
-            })
+            };
             {
-                if (dialog.ShowDialog() != DialogResult.OK)
+                if (dialog.ShowDialog() is not true)
                 {
                     return;
                 }

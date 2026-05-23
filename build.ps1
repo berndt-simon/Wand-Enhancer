@@ -1,6 +1,9 @@
 param(
     [ValidateSet('Debug', 'Release')]
-    [string]$Configuration = 'Release'
+    [string]$Configuration = 'Release',
+    # Skip the dockerized native build and reuse an existing version.dll
+    # (e.g. a CI artifact already placed in the expected output path).
+    [switch]$SkipNativeBuild
 )
 
 $ErrorActionPreference = 'Stop'
@@ -36,10 +39,14 @@ function Invoke-Step {
     }
 }
 
-$cmake = Resolve-CommandPath 'cmake'
 $pnpm = Resolve-CommandPath 'pnpm'
 $dotnet = Resolve-CommandPath 'dotnet'
-$generator = 'Visual Studio 17 2022'
+$docker = if ($SkipNativeBuild) { $null } else { Resolve-CommandPath 'docker' }
+
+# WandEnhancer.csproj embeds the proxy DLL from
+# .tmp/cmake/asar-fuses-bypass/<Debug|Release>/version.dll
+$nativeConfig = if ($Configuration -eq 'Debug') { 'Debug' } else { 'Release' }
+$nativeOutDir = Join-Path $asarFusesBuildDir $nativeConfig
 
 Invoke-Step 'Install web-panel dependencies' {
     & $pnpm --dir $webPanelDir install --frozen-lockfile
@@ -49,12 +56,23 @@ Invoke-Step 'Build web-panel' {
     & $pnpm --dir $webPanelDir run build
 }
 
-Invoke-Step 'Configure asar-fuses-bypass' {
-    & $cmake -S $asarFusesSourceDir -B $asarFusesBuildDir -G $generator -A x64
+# Cross-compile version.dll on Linux via MinGW-w64 in a container, then export
+# just the artifact straight into the path the .csproj embeds.
+if ($SkipNativeBuild) {
+    $proxyDll = Join-Path $nativeOutDir 'version.dll'
+    if (-not (Test-Path $proxyDll)) {
+        throw "SkipNativeBuild set but proxy DLL is missing: $proxyDll"
+    }
+    Write-Host "==> Skipping native build, using $proxyDll" -ForegroundColor Cyan
 }
-
-Invoke-Step 'Build asar-fuses-bypass' {
-    & $cmake --build $asarFusesBuildDir --config $Configuration
+else {
+    Invoke-Step 'Build asar-fuses-bypass (docker)' {
+        New-Item -ItemType Directory -Force $nativeOutDir | Out-Null
+        & $docker build `
+            --build-arg "BUILD_TYPE=$nativeConfig" `
+            -o "type=local,dest=$nativeOutDir" `
+            $asarFusesSourceDir
+    }
 }
 
 Invoke-Step 'Publish WandEnhancer (self-contained single-file)' {
