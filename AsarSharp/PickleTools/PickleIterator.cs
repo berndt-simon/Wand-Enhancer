@@ -55,20 +55,20 @@ public class PickleIterator
 
     public string ReadString()
     {
-        int length = ReadInt();
+        var length = ReadInt();
         return Encoding.UTF8.GetString(ReadBytes(length));
     }
 
     private T ReadBytes<T>(int length, Func<byte[], int, T> converter)
     {
-        int readPayloadOffset = GetReadPayloadOffsetAndAdvance(length);
+        var readPayloadOffset = GetReadPayloadOffsetAndAdvance(length);
         return converter(_payload, readPayloadOffset);
     }
 
     private byte[] ReadBytes(int length)
     {
-        int readPayloadOffset = GetReadPayloadOffsetAndAdvance(length);
-        byte[] result = new byte[length];
+        var readPayloadOffset = GetReadPayloadOffsetAndAdvance(length);
+        var result = new byte[length];
         Array.Copy(_payload, readPayloadOffset, result, 0, length);
         return result;
     }
@@ -80,14 +80,14 @@ public class PickleIterator
             _readIndex = _endIndex;
             throw new InvalidOperationException($"Failed to read data with length of {length}");
         }
-        int readPayloadOffset = _payloadOffset + _readIndex;
+        var readPayloadOffset = _payloadOffset + _readIndex;
         Advance(length);
         return readPayloadOffset;
     }
 
     private void Advance(int size)
     {
-        int alignedSize = Pickle.AlignInt(size, Pickle.SIZE_UINT32);
+        var alignedSize = Pickle.AlignInt(size, Pickle.SIZE_UINT32);
         if (_endIndex - _readIndex < alignedSize)
         {
             _readIndex = _endIndex;

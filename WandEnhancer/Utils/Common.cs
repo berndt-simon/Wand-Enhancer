@@ -10,8 +10,8 @@ public static class Common
 {
     public static void TryKillProcess(string processName)
     {
-        Process[] processes = Process.GetProcessesByName(processName);
-        for (int i = 0; processes.Length > i || i < 5; i++)
+        var processes = Process.GetProcessesByName(processName);
+        for (var i = 0; processes.Length > i || i < 5; i++)
         {
             foreach (var process in processes)
             {

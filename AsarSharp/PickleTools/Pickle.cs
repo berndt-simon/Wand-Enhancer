@@ -73,8 +73,8 @@ public class Pickle
     /// <summary>Materialise the pickle into a fresh byte array (allocates).</summary>
     public byte[] ToBuffer()
     {
-        int resultSize = GetTotalSize();
-        byte[] result = new byte[resultSize];
+        var resultSize = GetTotalSize();
+        var result = new byte[resultSize];
         Buffer.BlockCopy(_header, 0, result, 0, resultSize);
         return result;
     }
@@ -91,7 +91,7 @@ public class Pickle
     public bool WriteInt(int value)
     {
         const int dataLength = SIZE_INT32; // already 4-byte aligned
-        int newSize = _writeOffset + dataLength;
+        var newSize = _writeOffset + dataLength;
 
         if (newSize > _capacityAfterHeader)
         {
@@ -108,7 +108,7 @@ public class Pickle
     public bool WriteUInt32(uint value)
     {
         const int dataLength = SIZE_UINT32;
-        int newSize = _writeOffset + dataLength;
+        var newSize = _writeOffset + dataLength;
 
         if (newSize > _capacityAfterHeader)
         {
@@ -124,7 +124,7 @@ public class Pickle
     public bool WriteInt64(long value)
     {
         const int dataLength = SIZE_INT64;
-        int newSize = _writeOffset + dataLength;
+        var newSize = _writeOffset + dataLength;
 
         if (newSize > _capacityAfterHeader)
         {
@@ -141,7 +141,7 @@ public class Pickle
     public bool WriteUInt64(ulong value)
     {
         const int dataLength = SIZE_UINT64;
-        int newSize = _writeOffset + dataLength;
+        var newSize = _writeOffset + dataLength;
 
         if (newSize > _capacityAfterHeader)
         {
@@ -157,14 +157,14 @@ public class Pickle
     public bool WriteFloat(float value)
     {
         const int dataLength = SIZE_FLOAT;
-        int newSize = _writeOffset + dataLength;
+        var newSize = _writeOffset + dataLength;
 
         if (newSize > _capacityAfterHeader)
         {
             Resize(Math.Max((int)_capacityAfterHeader * 2, newSize));
         }
 
-        int bits = BitConverter.ToInt32(BitConverter.GetBytes(value), 0);
+        var bits = BitConverter.ToInt32(BitConverter.GetBytes(value), 0);
         WriteInt32LE(bits, _headerSize + _writeOffset);
 
         SetPayloadSize(newSize);
@@ -175,14 +175,14 @@ public class Pickle
     public bool WriteDouble(double value)
     {
         const int dataLength = SIZE_DOUBLE;
-        int newSize = _writeOffset + dataLength;
+        var newSize = _writeOffset + dataLength;
 
         if (newSize > _capacityAfterHeader)
         {
             Resize(Math.Max((int)_capacityAfterHeader * 2, newSize));
         }
 
-        long bits = BitConverter.DoubleToInt64Bits(value);
+        var bits = BitConverter.DoubleToInt64Bits(value);
         WriteInt64LE(bits, _headerSize + _writeOffset);
 
         SetPayloadSize(newSize);
@@ -192,26 +192,26 @@ public class Pickle
 
     public bool WriteString(string value)
     {
-        int byteLen = Encoding.UTF8.GetByteCount(value);
+        var byteLen = Encoding.UTF8.GetByteCount(value);
 
         if (!WriteInt(byteLen))
         {
             return false;
         }
 
-        int aligned = AlignInt(byteLen, SIZE_UINT32);
-        int newSize = _writeOffset + aligned;
+        var aligned = AlignInt(byteLen, SIZE_UINT32);
+        var newSize = _writeOffset + aligned;
 
         if (newSize > _capacityAfterHeader)
         {
             Resize(Math.Max((int)_capacityAfterHeader * 2, newSize));
         }
 
-        int writeStart = _headerSize + _writeOffset;
+        var writeStart = _headerSize + _writeOffset;
         Encoding.UTF8.GetBytes(value, 0, value.Length, _header, writeStart);
 
         // zero alignment padding
-        for (int i = writeStart + byteLen; i < writeStart + aligned; i++)
+        for (var i = writeStart + byteLen; i < writeStart + aligned; i++)
         {
             _header[i] = 0;
         }
@@ -231,7 +231,7 @@ public class Pickle
     private void Resize(int newCapacity)
     {
         newCapacity = AlignInt(newCapacity, PAYLOAD_UNIT);
-        byte[] newHeader = new byte[_header.Length + newCapacity];
+        var newHeader = new byte[_header.Length + newCapacity];
         Buffer.BlockCopy(_header, 0, newHeader, 0, _header.Length);
         _header = newHeader;
         _capacityAfterHeader = newCapacity;

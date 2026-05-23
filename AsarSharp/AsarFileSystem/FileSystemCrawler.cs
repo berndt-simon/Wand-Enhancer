@@ -39,9 +39,9 @@ public static class FileSystemCrawler
             return null;
         }
 
-        bool isDirectory = (attributes & FileAttributes.Directory) == FileAttributes.Directory;
-        bool isLink = (attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint;
-        FileSystemInfo info = isDirectory
+        var isDirectory = (attributes & FileAttributes.Directory) == FileAttributes.Directory;
+        var isLink = (attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint;
+        var info = isDirectory
             ? (FileSystemInfo)new DirectoryInfo(filename)
             : new FileInfo(filename);
 
@@ -70,8 +70,8 @@ public static class FileSystemCrawler
         var filtered = new List<string>(filenames.Count);
         foreach (var filename in filenames)
         {
-            bool isValid = true;
-            string fileDir = Path.GetDirectoryName(filename) ?? string.Empty;
+            var isValid = true;
+            var fileDir = Path.GetDirectoryName(filename) ?? string.Empty;
 
             foreach (var link in links)
             {
@@ -79,7 +79,7 @@ public static class FileSystemCrawler
 
                 if (filename.StartsWith(link, StringComparison.OrdinalIgnoreCase))
                 {
-                    string rel = Extensions.GetRelativePath(link, fileDir);
+                    var rel = Extensions.GetRelativePath(link, fileDir);
                     if (!rel.StartsWith("..", StringComparison.Ordinal))
                     {
                         isValid = false;
@@ -99,7 +99,7 @@ public static class FileSystemCrawler
         var result = new List<string>();
         var stack = new Stack<DirectoryInfo>();
 
-        string basePath = Extensions.GetBasePath(dir);
+        var basePath = Extensions.GetBasePath(dir);
         if (!Directory.Exists(basePath)) return result;
 
         stack.Push(new DirectoryInfo(basePath));

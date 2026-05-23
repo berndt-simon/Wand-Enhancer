@@ -64,10 +64,10 @@ public class AsarCreator
                 filesystem.InsertDirectory(filename, false);
                 break;
             case FileType.File:
-                string parentDir = Path.GetDirectoryName(filename) ?? string.Empty;
-                string relParent = Extensions.GetRelativePath(_folderPath, parentDir);
-                bool shouldUnpack = ShouldUnpackPath(relParent);
-                long fileSize = file.Stat is FileInfo fi ? fi.Length : 0;
+                var parentDir = Path.GetDirectoryName(filename) ?? string.Empty;
+                var relParent = Extensions.GetRelativePath(_folderPath, parentDir);
+                var shouldUnpack = ShouldUnpackPath(relParent);
+                var fileSize = file.Stat is FileInfo fi ? fi.Length : 0;
                 var placeholder = IntegrityHelper.CreatePlaceholder(fileSize);
                 files.Add(new Disk.BasicFileInfo { Filename = filename, Unpack = shouldUnpack });
                 filesystem.InsertFile(filename, shouldUnpack, file, placeholder);

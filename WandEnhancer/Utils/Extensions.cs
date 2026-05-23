@@ -38,7 +38,7 @@ public static class Extensions
         
     public static WeModConfig? FindWeMod()
     {
-        string? localAppDataPath = Environment.GetEnvironmentVariable("LOCALAPPDATA");
+        var localAppDataPath = Environment.GetEnvironmentVariable("LOCALAPPDATA");
             
         foreach (var folder in Constants.WeModBrandNames)
         {

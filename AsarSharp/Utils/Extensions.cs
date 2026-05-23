@@ -24,8 +24,8 @@ internal static class Extensions
         // Fast path: literal prefix match (no normalisation). Covers ~all
         // intra-archive callers where both inputs already come from the
         // same crawl pass.
-        string baseFast = TrimTrailingSeparators(relativeTo);
-        string pathFast = TrimTrailingSeparators(path);
+        var baseFast = TrimTrailingSeparators(relativeTo);
+        var pathFast = TrimTrailingSeparators(path);
 
         if (string.Equals(baseFast, pathFast, StringComparison.OrdinalIgnoreCase))
             return string.Empty;
@@ -45,8 +45,8 @@ internal static class Extensions
 
     private static string GetRelativePathNormalised(string relativeTo, string path)
     {
-        string fullBase = Path.GetFullPath(relativeTo);
-        string fullPath = Path.GetFullPath(path);
+        var fullBase = Path.GetFullPath(relativeTo);
+        var fullPath = Path.GetFullPath(path);
 
         fullBase = TrimTrailingSeparators(fullBase);
         fullPath = TrimTrailingSeparators(fullPath);
@@ -62,12 +62,12 @@ internal static class Extensions
         }
 
         // Need to walk up the common ancestor.
-        char sep = Path.DirectorySeparatorChar;
-        string[] baseParts = fullBase.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-        string[] pathParts = fullPath.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+        var sep = Path.DirectorySeparatorChar;
+        var baseParts = fullBase.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+        var pathParts = fullPath.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
 
-        int common = 0;
-        int max = Math.Min(baseParts.Length, pathParts.Length);
+        var common = 0;
+        var max = Math.Min(baseParts.Length, pathParts.Length);
         while (common < max &&
                string.Equals(baseParts[common], pathParts[common], StringComparison.OrdinalIgnoreCase))
         {
@@ -75,12 +75,12 @@ internal static class Extensions
         }
 
         var sb = new StringBuilder();
-        for (int i = common; i < baseParts.Length; i++)
+        for (var i = common; i < baseParts.Length; i++)
         {
             if (sb.Length > 0) sb.Append(sep);
             sb.Append("..");
         }
-        for (int i = common; i < pathParts.Length; i++)
+        for (var i = common; i < pathParts.Length; i++)
         {
             if (sb.Length > 0) sb.Append(sep);
             sb.Append(pathParts[i]);
@@ -90,7 +90,7 @@ internal static class Extensions
 
     private static string TrimTrailingSeparators(string s)
     {
-        int end = s.Length;
+        var end = s.Length;
         while (end > 0 && IsSeparator(s[end - 1])) end--;
         return end == s.Length ? s : s.Substring(0, end);
     }
@@ -102,7 +102,7 @@ internal static class Extensions
         if (string.IsNullOrEmpty(path))
             return ".";
 
-        string? result = Path.GetDirectoryName(path);
+        var result = Path.GetDirectoryName(path);
 
         if (string.IsNullOrEmpty(result))
             return ".";
@@ -129,13 +129,13 @@ internal static class Extensions
 
     public static string GetBasePath(string dir)
     {
-        int wildcardIndex = dir.IndexOfAny(new[] { '*', '?' });
+        var wildcardIndex = dir.IndexOfAny(new[] { '*', '?' });
         if (wildcardIndex == -1)
         {
             return dir;
         }
 
-        int lastSeparatorIndex = dir.LastIndexOf(Path.DirectorySeparatorChar, wildcardIndex);
+        var lastSeparatorIndex = dir.LastIndexOf(Path.DirectorySeparatorChar, wildcardIndex);
         if (lastSeparatorIndex == -1)
         {
             return ".";

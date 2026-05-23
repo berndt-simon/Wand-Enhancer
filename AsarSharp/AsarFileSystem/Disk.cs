@@ -47,7 +47,7 @@ public static class Disk
         using (var fs = new FileStream(archivePath, FileMode.Open, FileAccess.Read, FileShare.Read,
                    65536, FileOptions.SequentialScan))
         {
-            byte[] sizeBuf = new byte[8];
+            var sizeBuf = new byte[8];
             if (fs.Read(sizeBuf, 0, 8) != 8)
                 throw new Exception("Unable to read header size");
 
@@ -88,23 +88,23 @@ public static class Disk
         if (!info.IsFile || !info.Size.HasValue)
             throw new ArgumentException("Entry is not a file", nameof(info));
 
-        long size = info.Size.Value;
-        byte[] buffer = new byte[size];
+        var size = info.Size.Value;
+        var buffer = new byte[size];
 
         if (size <= 0) return buffer;
 
         if (info.Unpacked == true)
         {
-            string filePath = Path.Combine($"{filesystem.GetRootPath()}.unpacked", filename);
+            var filePath = Path.Combine($"{filesystem.GetRootPath()}.unpacked", filename);
             return File.ReadAllBytes(filePath);
         }
 
         using (var fs = new FileStream(filesystem.GetRootPath(), FileMode.Open, FileAccess.Read,
                    FileShare.Read, 65536, FileOptions.RandomAccess))
         {
-            long offset = 8 + filesystem.GetHeaderSize() + long.Parse(info.Offset!);
+            var offset = 8 + filesystem.GetHeaderSize() + long.Parse(info.Offset!);
             fs.Position = offset;
-            int bytesRead = fs.Read(buffer, 0, (int)size);
+            var bytesRead = fs.Read(buffer, 0, (int)size);
             if (bytesRead != size)
                 throw new Exception($"Failed to read entire file, got {bytesRead} bytes instead of {size}");
         }
@@ -129,16 +129,16 @@ public static class Disk
         if (dest == null || rootPath == null || filename == null)
             throw new ArgumentNullException();
 
-        string normalizedDestRoot = Path.GetFullPath(dest)
+        var normalizedDestRoot = Path.GetFullPath(dest)
             .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        string normalizedRootPath = Path.GetFullPath(rootPath)
+        var normalizedRootPath = Path.GetFullPath(rootPath)
             .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
         if (string.Equals(normalizedDestRoot, normalizedRootPath, StringComparison.OrdinalIgnoreCase))
             return;
 
-        string sourcePath = Path.GetFullPath(Path.Combine(rootPath, filename));
-        string destPath = Path.GetFullPath(Path.Combine(dest, filename));
+        var sourcePath = Path.GetFullPath(Path.Combine(rootPath, filename));
+        var destPath = Path.GetFullPath(Path.Combine(dest, filename));
 
         if (string.Equals(sourcePath, destPath, StringComparison.OrdinalIgnoreCase))
             return;
@@ -155,13 +155,13 @@ public static class Disk
         FilesystemFilesAndLinks lists, Dictionary<string, CrawledFileType> metadata)
     {
         // --- Phase 1: write placeholder header ---
-        string headerJson = JsonSerializer.Serialize(fileSystem.GetHeader(), HeaderJsonOptions);
+        var headerJson = JsonSerializer.Serialize(fileSystem.GetHeader(), HeaderJsonOptions);
         var headerPickle = Pickle.CreateEmpty();
         headerPickle.WriteString(headerJson);
 
         var sizePickle = Pickle.CreateEmpty();
         sizePickle.WriteUInt32((uint)headerPickle.GetTotalSize());
-        int sizePickleSize = sizePickle.GetTotalSize();
+        var sizePickleSize = sizePickle.GetTotalSize();
 
         var buf = new byte[StreamBufferSize];
         var blockBuf = new byte[4 * 1024 * 1024]; // shared across all files — avoids 4MB alloc per file
@@ -186,7 +186,7 @@ public static class Disk
             }
 
             // --- Phase 3: re-serialize header with real hashes, seek back, overwrite ---
-            string patchedJson = JsonSerializer.Serialize(fileSystem.GetHeader(), HeaderJsonOptions);
+            var patchedJson = JsonSerializer.Serialize(fileSystem.GetHeader(), HeaderJsonOptions);
             var patchedPickle = Pickle.CreateEmpty();
             patchedPickle.WriteString(patchedJson);
 
@@ -201,11 +201,11 @@ public static class Disk
 
     private static void CopyAndHash(string srcPath, Stream? dest, byte[] buf, byte[] blockBuf, Filesystem fs)
     {
-        string relPath = Extensions.GetRelativePath(fs.GetRootPath(), srcPath);
+        var relPath = Extensions.GetRelativePath(fs.GetRootPath(), srcPath);
         var node = fs.GetNode(relPath, followLinks: false);
 
-        long fileSize = node?.Size ?? 0;
-        int estimatedBlocks = fileSize > 0 ? (int)((fileSize + 4 * 1024 * 1024 - 1) / (4 * 1024 * 1024)) : 0;
+        var fileSize = node?.Size ?? 0;
+        var estimatedBlocks = fileSize > 0 ? (int)((fileSize + 4 * 1024 * 1024 - 1) / (4 * 1024 * 1024)) : 0;
 
         using (var hasher = new IntegrityHelper.StreamingHasher(estimatedBlocks, blockBuf))
         using (var src = new FileStream(srcPath, FileMode.Open, FileAccess.Read, FileShare.Read, StreamBufferSize, FileOptions.SequentialScan))

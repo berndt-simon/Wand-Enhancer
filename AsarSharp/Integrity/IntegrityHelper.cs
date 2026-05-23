@@ -30,9 +30,9 @@ public static class IntegrityHelper
 
     public static FileIntegrity CreatePlaceholder(long fileSize)
     {
-        int blockCount = fileSize > 0 ? (int)((fileSize + BLOCK_SIZE - 1) / BLOCK_SIZE) : 0;
+        var blockCount = fileSize > 0 ? (int)((fileSize + BLOCK_SIZE - 1) / BLOCK_SIZE) : 0;
         var blocks = new List<string>(blockCount);
-        for (int i = 0; i < blockCount; i++)
+        for (var i = 0; i < blockCount; i++)
             blocks.Add(PLACEHOLDER_HASH);
 
         return new FileIntegrity
@@ -46,14 +46,14 @@ public static class IntegrityHelper
 
     public static FileIntegrity GetFileIntegrity(string path, byte[]? reusableBuffer = null)
     {
-        byte[] buffer = reusableBuffer ?? new byte[BLOCK_SIZE];
+        var buffer = reusableBuffer ?? new byte[BLOCK_SIZE];
 
         using (var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
                    65536, FileOptions.SequentialScan))
         using (var fileHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
         using (var blockHash = SHA256.Create())
         {
-            int estimatedBlockCount = fileStream.Length > 0
+            var estimatedBlockCount = fileStream.Length > 0
                 ? (int)((fileStream.Length + BLOCK_SIZE - 1) / BLOCK_SIZE)
                 : 0;
             var blockHashes = new List<string>(estimatedBlockCount);
@@ -96,12 +96,12 @@ public static class IntegrityHelper
         {
             _fileHash.AppendData(data, offset, count);
 
-            int remaining = count;
-            int src = offset;
+            var remaining = count;
+            var src = offset;
             while (remaining > 0)
             {
-                int space = BLOCK_SIZE - _blockFill;
-                int copy = Math.Min(space, remaining);
+                var space = BLOCK_SIZE - _blockFill;
+                var copy = Math.Min(space, remaining);
                 Buffer.BlockCopy(data, src, _blockBuf, _blockFill, copy);
                 _blockFill += copy;
                 src += copy;
@@ -143,9 +143,9 @@ public static class IntegrityHelper
     {
         if (bytes == null || bytes.Length == 0) return string.Empty;
         var chars = new char[bytes.Length * 2];
-        for (int i = 0; i < bytes.Length; i++)
+        for (var i = 0; i < bytes.Length; i++)
         {
-            byte v = bytes[i];
+            var v = bytes[i];
             chars[i * 2] = HexDigits[v >> 4];
             chars[i * 2 + 1] = HexDigits[v & 0x0F];
         }

@@ -35,10 +35,10 @@ public class Filesystem
 
     public FilesystemEntry SearchNodeFromDirectory(string p)
     {
-        FilesystemEntry json = _header;
+        var json = _header;
 
-        int len = p.Length;
-        int start = 0;
+        var len = p.Length;
+        var start = 0;
 
         // skip leading separators
         while (start < len && (p[start] == '/' || p[start] == '\\')) start++;
@@ -46,17 +46,17 @@ public class Filesystem
         while (start < len)
         {
             // find next separator
-            int end = start;
+            var end = start;
             while (end < len && p[end] != '/' && p[end] != '\\') end++;
 
-            int segLen = end - start;
+            var segLen = end - start;
             if (segLen == 0 || (segLen == 1 && p[start] == '.'))
             {
                 start = end + 1;
                 continue;
             }
 
-            string seg = p.Substring(start, segLen);
+            var seg = p.Substring(start, segLen);
 
             if (!json.IsDirectory)
                 throw new Exception($"Unexpected directory state while traversing: {p}");
@@ -75,12 +75,12 @@ public class Filesystem
 
     public (FilesystemEntry parent, string name) SearchNodeFromPathWithParent(string p)
     {
-        string rel = Extensions.GetRelativePath(_src, p);
+        var rel = Extensions.GetRelativePath(_src, p);
         if (string.IsNullOrEmpty(rel))
             return (_header, string.Empty);
 
-        string name = Path.GetFileName(rel);
-        string dir = Extensions.GetDirectoryName(rel);
+        var name = Path.GetFileName(rel);
+        var dir = Extensions.GetDirectoryName(rel);
         var parent = SearchNodeFromDirectory(dir);
 
         if (parent.Files == null)
@@ -103,8 +103,8 @@ public class Filesystem
             if (!metadata.IsDirectory) return;
             foreach (var entry in metadata.Files!)
             {
-                string fullPath = Path.Combine(basePath, entry.Key).Replace('\\', '/');
-                string packState = entry.Value.Unpacked == true ? "unpack" : "pack  ";
+                var fullPath = Path.Combine(basePath, entry.Key).Replace('\\', '/');
+                var packState = entry.Value.Unpacked == true ? "unpack" : "pack  ";
                 files.Add(isPack ? $"{packState} : {fullPath}" : fullPath);
                 FillFilesFromMetadata(fullPath, entry.Value);
             }
@@ -114,8 +114,8 @@ public class Filesystem
     public FilesystemEntry? GetNode(string p, bool followLinks = true)
     {
         p = p.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
-        FilesystemEntry node = SearchNodeFromDirectory(Extensions.GetDirectoryName(p));
-        string name = Path.GetFileName(p);
+        var node = SearchNodeFromDirectory(Extensions.GetDirectoryName(p));
+        var name = Path.GetFileName(p);
 
         if (node.IsLink && followLinks)
             return GetNode(Path.Combine(node.Link!, name));
@@ -132,7 +132,7 @@ public class Filesystem
 
     public FilesystemEntry GetFile(string p, bool followLinks = true)
     {
-        FilesystemEntry? info = GetNode(p, followLinks);
+        var info = GetNode(p, followLinks);
         if (info == null) throw new Exception($"\"{p}\" was not found in this archive");
         if (info.IsLink && followLinks) return GetFile(info.Link!, followLinks);
         return info;
@@ -151,7 +151,7 @@ public class Filesystem
 
     public void InsertDirectory(string p, bool unpack)
     {
-        FilesystemEntry node = SearchNodeFromPath(p);
+        var node = SearchNodeFromPath(p);
         node.Files = node.Files ?? new Dictionary<string, FilesystemEntry>(StringComparer.Ordinal);
         node.Unpacked = unpack;
     }

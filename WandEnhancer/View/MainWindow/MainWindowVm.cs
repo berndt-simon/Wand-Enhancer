@@ -61,8 +61,8 @@ public partial class MainWindowVm : ObservableObject
         };
 
         if (dialog.ShowDialog() is not true) return;
-        string selectedPath = dialog.FolderName;
-        string fileName = Path.GetFileName(selectedPath);
+        var selectedPath = dialog.FolderName;
+        var fileName = Path.GetFileName(selectedPath);
 
         var info = Extensions.CheckWeModPath(selectedPath);
 

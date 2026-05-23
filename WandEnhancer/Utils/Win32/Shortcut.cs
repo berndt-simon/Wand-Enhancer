@@ -48,7 +48,7 @@ public class Shortcut
         
     public static void CreateShortcut(string fileName, string targetPath, string arguments, string workingDirectory, string description, string iconPath)
     {
-        IWshShortcut shortcut     = (IWshShortcut)m_type.InvokeMember("CreateShortcut", System.Reflection.BindingFlags.InvokeMethod, null, m_shell, new object[] { fileName })!;
+        var shortcut     = (IWshShortcut)m_type.InvokeMember("CreateShortcut", System.Reflection.BindingFlags.InvokeMethod, null, m_shell, new object[] { fileName })!;
         shortcut.Description      = description;
         shortcut.TargetPath       = targetPath;
         shortcut.WorkingDirectory = workingDirectory;

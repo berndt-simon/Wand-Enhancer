@@ -14,7 +14,7 @@ public static class Program
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
             
-        List<LogEntry> logEntries = new List<LogEntry>();
+        var logEntries = new List<LogEntry>();
         if (args.Length > 0)
         {
             // TODO: Command line arguments handling

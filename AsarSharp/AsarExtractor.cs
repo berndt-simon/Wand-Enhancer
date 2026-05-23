@@ -19,14 +19,14 @@ public class AsarExtractor
         var filenames = filesystem.ListFiles();
 
         // On Windows, links are extracted as plain files.
-        bool followLinks = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        var followLinks = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
         Directory.CreateDirectory(dest);
 
-        byte[] ioBuffer = new byte[IO_BUFFER_SIZE];
+        var ioBuffer = new byte[IO_BUFFER_SIZE];
         var dirCache = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Path.GetFullPath(dest) };
         var extractionErrors = new List<Exception>();
-        string rootPath = filesystem.GetRootPath();
+        var rootPath = filesystem.GetRootPath();
         long dataOffset = 8 + filesystem.GetHeaderSize();
 
         // One archive handle for all reads — old code opened it per file.
@@ -42,7 +42,7 @@ public class AsarExtractor
                     var file = filesystem.GetFile(filename, followLinks);
 
                     // Path-traversal guard.
-                    string relativePath = Extensions.GetRelativePath(dest, destFilename);
+                    var relativePath = Extensions.GetRelativePath(dest, destFilename);
                     if (relativePath.StartsWith(".."))
                     {
                         throw new InvalidOperationException(
@@ -95,11 +95,11 @@ public class AsarExtractor
 
     private static void EnsureDirectory(string path, HashSet<string> cache)
     {
-        string full = Path.GetFullPath(path);
+        var full = Path.GetFullPath(path);
         if (cache.Contains(full)) return;
         Directory.CreateDirectory(full);
         // Mark every ancestor too so siblings skip the syscall.
-        string? p = full;
+        var p = full;
         while (!string.IsNullOrEmpty(p) && cache.Add(p))
         {
             p = Path.GetDirectoryName(p);
@@ -108,7 +108,7 @@ public class AsarExtractor
 
     private static void EnsureParentDir(string filePath, HashSet<string> cache)
     {
-        string? parent = Path.GetDirectoryName(filePath);
+        var parent = Path.GetDirectoryName(filePath);
         if (string.IsNullOrEmpty(parent)) return;
         EnsureDirectory(parent, cache);
     }
@@ -121,8 +121,8 @@ public class AsarExtractor
 
         if (file.Unpacked == true)
         {
-            string unpackedSourcePath = Path.GetFullPath(Path.Combine($"{rootPath}.unpacked", filename));
-            string unpackedDestPath = Path.GetFullPath(destFilename);
+            var unpackedSourcePath = Path.GetFullPath(Path.Combine($"{rootPath}.unpacked", filename));
+            var unpackedDestPath = Path.GetFullPath(destFilename);
 
             if (string.Equals(unpackedSourcePath, unpackedDestPath, StringComparison.OrdinalIgnoreCase))
                 return; // self-copy
@@ -133,18 +133,18 @@ public class AsarExtractor
             return;
         }
 
-        long size = file.Size ?? 0;
+        var size = file.Size ?? 0;
         using (var dst = new FileStream(destFilename, FileMode.Create, FileAccess.Write, FileShare.None,
                    FS_INTERNAL_BUFFER, FileOptions.SequentialScan))
         {
             if (size <= 0) return;
 
             archive.Position = dataOffset + long.Parse(file.Offset!);
-            long remaining = size;
+            var remaining = size;
             while (remaining > 0)
             {
-                int toRead = remaining > buffer.Length ? buffer.Length : (int)remaining;
-                int got = archive.Read(buffer, 0, toRead);
+                var toRead = remaining > buffer.Length ? buffer.Length : (int)remaining;
+                var got = archive.Read(buffer, 0, toRead);
                 if (got <= 0) throw new EndOfStreamException("Archive truncated");
                 dst.Write(buffer, 0, got);
                 remaining -= got;
@@ -155,7 +155,7 @@ public class AsarExtractor
     private static void ExtractLink(string dest, string fullPath, string destFilename,
         FilesystemEntry file, HashSet<string> dirCache)
     {
-        string link = file.Link!;
+        var link = file.Link!;
         var linkSrcPath = Extensions.GetDirectoryName(Path.Combine(dest, link));
         var linkDestPath = Extensions.GetDirectoryName(destFilename);
         var relativeLinkPath = Extensions.GetRelativePath(linkDestPath, linkSrcPath);

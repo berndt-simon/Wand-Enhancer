@@ -81,11 +81,11 @@ public class Enhancer
                 $"{prefix} Patch failed. Multiple target functions found. Looks like the version is not supported");
         }
 
-        string patchSource = patch.Patch;
+        var patchSource = patch.Patch;
 
         if (patch.Resolver != null)
         {
-            string? resolvedField = patch.Resolver.Handler(match.Value);
+            var resolvedField = patch.Resolver.Handler(match.Value);
             if (string.IsNullOrEmpty(resolvedField))
             {
                 throw new Exception($"{prefix} Resolver failed to find field name");
@@ -96,7 +96,7 @@ public class Enhancer
             
         _logger($"{prefix} Found target function in: " + Path.GetFileName(fileName), ELogType.Info);
             
-        string newJs = patch.SingleMatch
+        var newJs = patch.SingleMatch
             ? patch.Target.Replace(js, patchSource, 1)
             : patch.Target.Replace(js, patchSource);
         _logger($"{prefix} Patch applied", ELogType.Success);
@@ -132,8 +132,8 @@ public class Enhancer
                 continue;
             }
                 
-            string data = File.ReadAllText(item);
-            bool fileChanged = false;
+            var data = File.ReadAllText(item);
+            var fileChanged = false;
                 
             foreach (var entry in remainingPatches.ToList())
             {
@@ -166,7 +166,7 @@ public class Enhancer
 
     private static bool IsCandidateBundleFile(string filePath)
     {
-        string fileName = Path.GetFileName(filePath);
+        var fileName = Path.GetFileName(filePath);
         return fileName.Equals(IndexBundleFileName, StringComparison.OrdinalIgnoreCase)
                || (fileName.StartsWith(AppBundleFilePrefix, StringComparison.OrdinalIgnoreCase)
                    && fileName.EndsWith(AppBundleFileSuffix, StringComparison.OrdinalIgnoreCase));
@@ -200,7 +200,7 @@ public class Enhancer
             return true;
         }
 
-        string fileName = Path.GetFileName(filePath);
+        var fileName = Path.GetFileName(filePath);
         return patch.CandidateFileNames.Any(candidate => fileName.Equals(candidate, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -216,10 +216,10 @@ public class Enhancer
 
     private static string FindWorkspacePath(params string[] segments)
     {
-        string? current = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        var current = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         while (!string.IsNullOrEmpty(current))
         {
-            string candidate = Path.Combine(new[] { current }.Concat(segments).ToArray());
+            var candidate = Path.Combine(new[] { current }.Concat(segments).ToArray());
             if (Directory.Exists(candidate) || File.Exists(candidate))
             {
                 return candidate;
@@ -259,7 +259,7 @@ public class Enhancer
 
         Directory.CreateDirectory(destinationDir);
 
-        int copied = 0;
+        var copied = 0;
         foreach (var file in Directory.GetFiles(sourceDir, JavaScriptFileSearchPattern, SearchOption.TopDirectoryOnly))
         {
             File.Copy(file, GetAvailableScriptPath(destinationDir, Path.GetFileName(file)));
@@ -271,15 +271,15 @@ public class Enhancer
 
     private static string GetAvailableScriptPath(string destinationDir, string fileName)
     {
-        string destinationPath = Path.Combine(destinationDir, fileName);
+        var destinationPath = Path.Combine(destinationDir, fileName);
         if (!File.Exists(destinationPath))
         {
             return destinationPath;
         }
 
-        string name = Path.GetFileNameWithoutExtension(fileName);
-        string extension = Path.GetExtension(fileName);
-        for (int index = FirstDuplicateScriptIndex; ; index++)
+        var name = Path.GetFileNameWithoutExtension(fileName);
+        var extension = Path.GetExtension(fileName);
+        for (var index = FirstDuplicateScriptIndex; ; index++)
         {
             destinationPath = Path.Combine(destinationDir, $"{name}{DuplicateScriptSuffix}{index}{extension}");
             if (!File.Exists(destinationPath))
@@ -330,13 +330,13 @@ public class Enhancer
 
     private static string? FindLocalCustomScriptsPath()
     {
-        string? executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        var executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         if (string.IsNullOrEmpty(executableDirectory))
         {
             return null;
         }
 
-        string localScripts = Path.Combine(executableDirectory, LocalCustomScriptsDirectoryName);
+        var localScripts = Path.Combine(executableDirectory, LocalCustomScriptsDirectoryName);
         return Directory.Exists(localScripts) ? localScripts : null;
     }
 
@@ -349,7 +349,7 @@ public class Enhancer
 
         Directory.CreateDirectory(destinationDir);
 
-        int copied = 0;
+        var copied = 0;
         foreach (var file in files.Where(IsJavaScriptFile).Distinct(StringComparer.OrdinalIgnoreCase))
         {
             File.Copy(file, GetAvailableScriptPath(destinationDir, Path.GetFileName(file)));
@@ -371,10 +371,10 @@ public class Enhancer
             return;
         }
 
-        string? localCustomScriptsRoot = FindLocalCustomScriptsPath();
-        string targetRoot = Path.Combine(_unpackedPath, RemotePanelDirectoryName);
-        string targetScriptsRoot = Path.Combine(targetRoot, RemoteRendererScriptsDirectoryName);
-        string targetBridgePath = Path.Combine(targetRoot, RemoteBridgeTargetFileName);
+        var localCustomScriptsRoot = FindLocalCustomScriptsPath();
+        var targetRoot = Path.Combine(_unpackedPath, RemotePanelDirectoryName);
+        var targetScriptsRoot = Path.Combine(targetRoot, RemoteRendererScriptsDirectoryName);
+        var targetBridgePath = Path.Combine(targetRoot, RemoteBridgeTargetFileName);
 
         if (Directory.Exists(targetRoot))
         {
@@ -391,7 +391,7 @@ public class Enhancer
             throw new FileNotFoundException("[ENHANCER] Remote bridge artifact is missing. Run `cd web-panel && pnpm run build` before patching.", targetBridgePath);
         }
 
-        int defaultScriptCount = Directory.Exists(targetScriptsRoot)
+        var defaultScriptCount = Directory.Exists(targetScriptsRoot)
             ? Directory.GetFiles(targetScriptsRoot, JavaScriptFileSearchPattern, SearchOption.TopDirectoryOnly).Length
             : 0;
         if (defaultScriptCount == 0)
@@ -399,8 +399,8 @@ public class Enhancer
             throw new FileNotFoundException("[ENHANCER] Remote renderer script artifacts are missing. Run `cd web-panel && pnpm run build` before patching.", targetScriptsRoot);
         }
 
-        int selectedScriptCount = CopySelectedJavaScriptFiles(_config.CustomScriptPaths, targetScriptsRoot);
-        int localScriptCount = CopyJavaScriptFiles(localCustomScriptsRoot, targetScriptsRoot);
+        var selectedScriptCount = CopySelectedJavaScriptFiles(_config.CustomScriptPaths, targetScriptsRoot);
+        var localScriptCount = CopyJavaScriptFiles(localCustomScriptsRoot, targetScriptsRoot);
 
         _logger($"[ENHANCER] Injected remote panel assets and renderer scripts into app.asar (default: {defaultScriptCount}, selected: {selectedScriptCount}, local: {localScriptCount})", ELogType.Info);
     }
