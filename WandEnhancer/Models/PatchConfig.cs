@@ -3,39 +3,36 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using WandEnhancer.Utils;
 
-namespace WandEnhancer.Models
+namespace WandEnhancer.Models;
+
+public enum EPatchType
 {
-
-    public enum EPatchType
-    {
-        ActivatePro = 1,
-        DisableUpdates = 2,
-        DisableTelemetry = 4,
-        DevToolsOnF12 = 8,
-        RemoteWebPanelPreview = 16
-    }
+    ActivatePro = 1,
+    DisableUpdates = 2,
+    DisableTelemetry = 4,
+    DevToolsOnF12 = 8,
+    RemoteWebPanelPreview = 16
+}
     
-    public sealed class PatchConfig
+public sealed class PatchConfig
+{
+    private string? _path;
+    public HashSet<EPatchType> PatchTypes { get; set; } = new HashSet<EPatchType>();
+
+    public List<string> CustomScriptPaths { get; set; } = new List<string>();
+
+    public bool AutoApplyPatches { get; set; }
+
+    [JsonIgnore]
+    public WeModConfig AppProps { get; private set; } = null!;
+
+    public string? Path
     {
-        private string? _path;
-        public HashSet<EPatchType> PatchTypes { get; set; } = new HashSet<EPatchType>();
-
-        public List<string> CustomScriptPaths { get; set; } = new List<string>();
-
-        public bool AutoApplyPatches { get; set; }
-
-        [JsonIgnore]
-        public WeModConfig AppProps { get; private set; } = null!;
-
-        public string? Path
+        get => _path;
+        set
         {
-            get => _path;
-            set
-            {
-                _path = value;
-                AppProps = Extensions.CheckWeModPath(value!) ?? throw new Exception("Invalid WeMod path");
-            }
+            _path = value;
+            AppProps = Extensions.CheckWeModPath(value!) ?? throw new Exception("Invalid WeMod path");
         }
     }
-    
 }

@@ -3,93 +3,92 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace WandEnhancer.View.Popups
+namespace WandEnhancer.View.Popups;
+
+public partial class UpdatePopup : UserControl
 {
-    public partial class UpdatePopup : UserControl
+    private readonly Action _onUpdate;
+    private readonly Func<Task<string?>>? _loadFullChangelog;
+    private readonly string _latestNotes;
+    private string? _fullChangelog;
+    private bool _showingFullChangelog;
+
+    public UpdatePopup(string? currentVersion, string? latestVersion, string? latestNotes, Action onUpdate,
+        Func<Task<string?>>? loadFullChangelog)
     {
-        private readonly Action _onUpdate;
-        private readonly Func<Task<string?>>? _loadFullChangelog;
-        private readonly string _latestNotes;
-        private string? _fullChangelog;
-        private bool _showingFullChangelog;
+        _onUpdate = onUpdate;
+        _loadFullChangelog = loadFullChangelog;
+        InitializeComponent();
 
-        public UpdatePopup(string? currentVersion, string? latestVersion, string? latestNotes, Action onUpdate,
-            Func<Task<string?>>? loadFullChangelog)
+        CurrentVersionValue.Text = currentVersion ?? string.Empty;
+        LatestVersionValue.Text = latestVersion ?? string.Empty;
+        _latestNotes = string.IsNullOrWhiteSpace(latestNotes)
+            ? GetResourceText("up_release_notes_unavailable")
+            : latestNotes;
+
+        SetNotesText(_latestNotes);
+        ShowMoreButton.Visibility = loadFullChangelog == null ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void OnUpdateClick(object sender, RoutedEventArgs e)
+    {
+        _onUpdate();
+    }
+
+    private async void OnShowMoreClick(object sender, RoutedEventArgs e)
+    {
+        if (_loadFullChangelog == null)
         {
-            _onUpdate = onUpdate;
-            _loadFullChangelog = loadFullChangelog;
-            InitializeComponent();
+            return;
+        }
 
-            CurrentVersionValue.Text = currentVersion ?? string.Empty;
-            LatestVersionValue.Text = latestVersion ?? string.Empty;
-            _latestNotes = string.IsNullOrWhiteSpace(latestNotes)
-                ? GetResourceText("up_release_notes_unavailable")
-                : latestNotes;
-
+        if (_showingFullChangelog)
+        {
             SetNotesText(_latestNotes);
-            ShowMoreButton.Visibility = loadFullChangelog == null ? Visibility.Collapsed : Visibility.Visible;
+            ShowMoreButton.Content = GetResourceText("up_show_more");
+            _showingFullChangelog = false;
+            return;
         }
 
-        private void OnUpdateClick(object sender, RoutedEventArgs e)
+        if (string.IsNullOrWhiteSpace(_fullChangelog))
         {
-            _onUpdate();
+            ShowMoreButton.IsEnabled = false;
+            ShowMoreButton.Content = GetResourceText("up_loading_changelog");
+
+            try
+            {
+                _fullChangelog = await _loadFullChangelog();
+            }
+            finally
+            {
+                ShowMoreButton.IsEnabled = true;
+            }
         }
 
-        private async void OnShowMoreClick(object sender, RoutedEventArgs e)
+        if (string.IsNullOrWhiteSpace(_fullChangelog))
         {
-            if (_loadFullChangelog == null)
-            {
-                return;
-            }
-
-            if (_showingFullChangelog)
-            {
-                SetNotesText(_latestNotes);
-                ShowMoreButton.Content = GetResourceText("up_show_more");
-                _showingFullChangelog = false;
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(_fullChangelog))
-            {
-                ShowMoreButton.IsEnabled = false;
-                ShowMoreButton.Content = GetResourceText("up_loading_changelog");
-
-                try
-                {
-                    _fullChangelog = await _loadFullChangelog();
-                }
-                finally
-                {
-                    ShowMoreButton.IsEnabled = true;
-                }
-            }
-
-            if (string.IsNullOrWhiteSpace(_fullChangelog))
-            {
-                ShowMoreButton.Content = GetResourceText("up_show_more");
-                SetNotesText(string.Concat(
-                    _latestNotes,
-                    Environment.NewLine,
-                    Environment.NewLine,
-                    GetResourceText("up_changelog_failed")));
-                return;
-            }
-
-            SetNotesText(_fullChangelog);
-            ShowMoreButton.Content = GetResourceText("up_show_less");
-            _showingFullChangelog = true;
+            ShowMoreButton.Content = GetResourceText("up_show_more");
+            SetNotesText(string.Concat(
+                _latestNotes,
+                Environment.NewLine,
+                Environment.NewLine,
+                GetResourceText("up_changelog_failed")));
+            return;
         }
 
-        private void SetNotesText(string? text)
-        {
-            NotesTextBlock.Text = text ?? string.Empty;
-            NotesScrollViewer.ScrollToTop();
-        }
+        SetNotesText(_fullChangelog);
+        ShowMoreButton.Content = GetResourceText("up_show_less");
+        _showingFullChangelog = true;
+    }
 
-        private static string GetResourceText(string key)
-        {
-            return Application.Current.TryFindResource(key) as string ?? string.Empty;
-        }
+    private void SetNotesText(string? text)
+    {
+        NotesTextBlock.Text = text ?? string.Empty;
+        NotesScrollViewer.ScrollToTop();
+    }
+
+    private static string GetResourceText(string key)
+    {
+        return Application.Current.TryFindResource(key) as string ?? string.Empty;
     }
 }

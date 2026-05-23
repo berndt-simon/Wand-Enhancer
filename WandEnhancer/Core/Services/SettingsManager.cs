@@ -2,55 +2,54 @@ using System;
 using System.IO;
 using System.Text.Json;
 
-namespace WandEnhancer.Core.Services
+namespace WandEnhancer.Core.Services;
+
+public class AppSettings
 {
-    public class AppSettings
+    public string? Language { get; set; }
+}
+
+public static class SettingsManager
+{
+    private static readonly string SettingsPath = Path.Combine(
+        AppDomain.CurrentDomain.BaseDirectory,
+        Constants.AppSettingsFileName);
+
+    private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
     {
-        public string? Language { get; set; }
+        WriteIndented = true,
+        PropertyNameCaseInsensitive = true
+    };
+
+    public static AppSettings? LoadSettings()
+    {
+        try
+        {
+            if (File.Exists(SettingsPath))
+            {
+                var json = File.ReadAllText(SettingsPath);
+                return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions);
+            }
+        }
+        catch (Exception)
+        {
+            // Settings loading is non-critical - silently fall back to defaults
+            // This can fail due to file permissions, corrupted JSON, etc.
+        }
+        return null;
     }
 
-    public static class SettingsManager
+    public static void SaveSettings(AppSettings settings)
     {
-        private static readonly string SettingsPath = Path.Combine(
-            AppDomain.CurrentDomain.BaseDirectory,
-            Constants.AppSettingsFileName);
-
-        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        try
         {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true
-        };
-
-        public static AppSettings? LoadSettings()
-        {
-            try
-            {
-                if (File.Exists(SettingsPath))
-                {
-                    var json = File.ReadAllText(SettingsPath);
-                    return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions);
-                }
-            }
-            catch (Exception)
-            {
-                // Settings loading is non-critical - silently fall back to defaults
-                // This can fail due to file permissions, corrupted JSON, etc.
-            }
-            return null;
+            var json = JsonSerializer.Serialize(settings, JsonOptions);
+            File.WriteAllText(SettingsPath, json);
         }
-
-        public static void SaveSettings(AppSettings settings)
+        catch (Exception)
         {
-            try
-            {
-                var json = JsonSerializer.Serialize(settings, JsonOptions);
-                File.WriteAllText(SettingsPath, json);
-            }
-            catch (Exception)
-            {
-                // Settings saving is non-critical - silently ignore errors
-                // This can fail due to file permissions or read-only directories
-            }
+            // Settings saving is non-critical - silently ignore errors
+            // This can fail due to file permissions or read-only directories
         }
     }
 }

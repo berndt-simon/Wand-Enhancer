@@ -4,43 +4,42 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using WandEnhancer.View.MainWindow;
 
-namespace WandEnhancer
+namespace WandEnhancer;
+
+public static class Program
 {
-    public static class Program
+    [STAThread]
+    public static void Main(string[] args)
     {
-        [STAThread]
-        public static void Main(string[] args)
-        {
-            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-            TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
             
-            List<LogEntry> logEntries = new List<LogEntry>();
-            if (args.Length > 0)
-            {
-                // TODO: Command line arguments handling
-            }
-
-            var application = new App();
-            application.InitializeComponent();
-            application.MainWindow = new MainWindow();
-            foreach (var logEntry in logEntries)
-            {
-                MainWindow.Instance.ViewModel.LogList.Add(logEntry);
-            }
-            application.Run();
-        }
-        
-        
-        private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+        List<LogEntry> logEntries = new List<LogEntry>();
+        if (args.Length > 0)
         {
-            MessageBox.Show(e.Exception.ToString());
-            Environment.Exit(1);
+            // TODO: Command line arguments handling
         }
 
-        private static void OnUnhandledException(object? sender, UnhandledExceptionEventArgs e)
+        var application = new App();
+        application.InitializeComponent();
+        application.MainWindow = new MainWindow();
+        foreach (var logEntry in logEntries)
         {
-            MessageBox.Show(e.ExceptionObject.ToString());
-            Environment.Exit(1);
+            MainWindow.Instance.ViewModel.LogList.Add(logEntry);
         }
+        application.Run();
+    }
+        
+        
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        MessageBox.Show(e.Exception.ToString());
+        Environment.Exit(1);
+    }
+
+    private static void OnUnhandledException(object? sender, UnhandledExceptionEventArgs e)
+    {
+        MessageBox.Show(e.ExceptionObject.ToString());
+        Environment.Exit(1);
     }
 }

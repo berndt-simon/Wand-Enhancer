@@ -6,63 +6,62 @@ using WandEnhancer.Core;
 using WandEnhancer.Core.Services;
 using WandEnhancer.View.MainWindow;
 
-namespace WandEnhancer.View.Popups
+namespace WandEnhancer.View.Popups;
+
+public partial class SettingsPopup : UserControl
 {
-    public partial class SettingsPopup : UserControl
+    private CultureInfo? _selectedLanguage;
+
+    public SettingsPopup()
     {
-        private CultureInfo? _selectedLanguage;
+        InitializeComponent();
+        LoadLanguages();
+    }
 
-        public SettingsPopup()
-        {
-            InitializeComponent();
-            LoadLanguages();
-        }
-
-        private void LoadLanguages()
-        {
-            var items = LocalizationManager.SupportedLanguages
-                .Select(c => new LanguageItem
-                {
-                    Culture = c,
-                    DisplayName = LocalizationManager.GetLanguageDisplayName(c)
-                })
-                .ToList();
-
-            LanguageComboBox.ItemsSource = items;
-            
-            var currentItem = items.FirstOrDefault(i => i.Culture.Name == LocalizationManager.CurrentLanguage?.Name);
-            if (currentItem != null)
+    private void LoadLanguages()
+    {
+        var items = LocalizationManager.SupportedLanguages
+            .Select(c => new LanguageItem
             {
-                LanguageComboBox.SelectedItem = currentItem;
-            }
+                Culture = c,
+                DisplayName = LocalizationManager.GetLanguageDisplayName(c)
+            })
+            .ToList();
+
+        LanguageComboBox.ItemsSource = items;
             
-            _selectedLanguage = LocalizationManager.CurrentLanguage;
-        }
-
-        private void OnLanguageSelectionChanged(object sender, SelectionChangedEventArgs e)
+        var currentItem = items.FirstOrDefault(i => i.Culture.Name == LocalizationManager.CurrentLanguage?.Name);
+        if (currentItem != null)
         {
-            if (LanguageComboBox.SelectedItem is LanguageItem item)
-            {
-                _selectedLanguage = item.Culture;
-            }
+            LanguageComboBox.SelectedItem = currentItem;
         }
-
-        private void OnSaveClick(object sender, RoutedEventArgs e)
-        {
-            if (_selectedLanguage != null && 
-                (LocalizationManager.CurrentLanguage == null || 
-                 _selectedLanguage.Name != LocalizationManager.CurrentLanguage.Name))
-            {
-                LocalizationManager.CurrentLanguage = _selectedLanguage;
-            }
             
-            MainWindow.MainWindow.Instance.ClosePopup();
-        }
+        _selectedLanguage = LocalizationManager.CurrentLanguage;
+    }
 
-        private class LanguageItem
+    private void OnLanguageSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (LanguageComboBox.SelectedItem is LanguageItem item)
         {
-            public CultureInfo Culture { get; set; } = null!;
-            public string DisplayName { get; set; } = null!;
+            _selectedLanguage = item.Culture;
         }
+    }
+
+    private void OnSaveClick(object sender, RoutedEventArgs e)
+    {
+        if (_selectedLanguage != null && 
+            (LocalizationManager.CurrentLanguage == null || 
+             _selectedLanguage.Name != LocalizationManager.CurrentLanguage.Name))
+        {
+            LocalizationManager.CurrentLanguage = _selectedLanguage;
+        }
+            
+        MainWindow.MainWindow.Instance.ClosePopup();
+    }
+
+    private class LanguageItem
+    {
+        public CultureInfo Culture { get; set; } = null!;
+        public string DisplayName { get; set; } = null!;
     }
 }

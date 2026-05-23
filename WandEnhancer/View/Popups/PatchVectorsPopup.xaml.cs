@@ -8,133 +8,132 @@ using System.Windows.Controls;
 using Microsoft.Win32;
 using WandEnhancer.Models;
 
-namespace WandEnhancer.View.Popups
+namespace WandEnhancer.View.Popups;
+
+public partial class PatchVectorsPopup : UserControl
 {
-    public partial class PatchVectorsPopup : UserControl
+    private const string JavaScriptDialogFilter = "JavaScript files (*.js)|*.js";
+    private const string JavaScriptFileExtension = ".js";
+
+    private readonly Action<PatchConfig> _onApply;
+    private readonly ObservableCollection<SelectedScript> _selectedScripts = new ObservableCollection<SelectedScript>();
+
+    public PatchVectorsPopup(Action<PatchConfig> onApply)
     {
-        private const string JavaScriptDialogFilter = "JavaScript files (*.js)|*.js";
-        private const string JavaScriptFileExtension = ".js";
+        _onApply = onApply;
+        InitializeComponent();
+        ScriptList.ItemsSource = _selectedScripts;
+        UpdateScriptsEmptyState();
+    }
 
-        private readonly Action<PatchConfig> _onApply;
-        private readonly ObservableCollection<SelectedScript> _selectedScripts = new ObservableCollection<SelectedScript>();
-
-        public PatchVectorsPopup(Action<PatchConfig> onApply)
+    private void OnAddScriptClick(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
         {
-            _onApply = onApply;
-            InitializeComponent();
-            ScriptList.ItemsSource = _selectedScripts;
-            UpdateScriptsEmptyState();
+            Filter = JavaScriptDialogFilter,
+            Multiselect = true,
+            CheckFileExists = true
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
         }
 
-        private void OnAddScriptClick(object sender, RoutedEventArgs e)
+        foreach (var path in dialog.FileNames.Where(IsJavaScriptFile))
         {
-            var dialog = new OpenFileDialog
-            {
-                Filter = JavaScriptDialogFilter,
-                Multiselect = true,
-                CheckFileExists = true
-            };
-
-            if (dialog.ShowDialog() != true)
-            {
-                return;
-            }
-
-            foreach (var path in dialog.FileNames.Where(IsJavaScriptFile))
-            {
-                AddScript(path);
-            }
-
-            if (_selectedScripts.Count > 0)
-            {
-                RemoteWebPanelPreviewBox.IsChecked = true;
-            }
-
-            UpdateScriptsEmptyState();
+            AddScript(path);
         }
 
-        private void OnRemoveScriptClick(object sender, RoutedEventArgs e)
+        if (_selectedScripts.Count > 0)
         {
-            var button = sender as Button;
-            var script = button?.Tag as SelectedScript;
-            if (script == null)
-            {
-                return;
-            }
-
-            _selectedScripts.Remove(script);
-            UpdateScriptsEmptyState();
+            RemoteWebPanelPreviewBox.IsChecked = true;
         }
 
-        private void OnPatchButtonClick(object sender, RoutedEventArgs e)
+        UpdateScriptsEmptyState();
+    }
+
+    private void OnRemoveScriptClick(object sender, RoutedEventArgs e)
+    {
+        var button = sender as Button;
+        var script = button?.Tag as SelectedScript;
+        if (script == null)
         {
-            if (ActivateProBox.IsChecked != true && DisableUpdateBox.IsChecked != true &&
-                DevToolsHotkeyBox.IsChecked != true && RemoteWebPanelPreviewBox.IsChecked != true)
-            {
-                return;
-            }
+            return;
+        }
+
+        _selectedScripts.Remove(script);
+        UpdateScriptsEmptyState();
+    }
+
+    private void OnPatchButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (ActivateProBox.IsChecked != true && DisableUpdateBox.IsChecked != true &&
+            DevToolsHotkeyBox.IsChecked != true && RemoteWebPanelPreviewBox.IsChecked != true)
+        {
+            return;
+        }
             
-            var result = new HashSet<EPatchType>();
-            if (ActivateProBox.IsChecked == true)
-            {
-                result.Add(EPatchType.ActivatePro);
-            }
-
-            if (DisableUpdateBox.IsChecked == true)
-            {
-                result.Add(EPatchType.DisableUpdates);
-            }
-
-            if (DevToolsHotkeyBox.IsChecked == true)
-            {
-                result.Add(EPatchType.DevToolsOnF12);
-            }
-
-            if (RemoteWebPanelPreviewBox.IsChecked == true)
-            {
-                result.Add(EPatchType.RemoteWebPanelPreview);
-            }
-
-            _onApply(new PatchConfig
-            {
-                PatchTypes = result,
-                CustomScriptPaths = _selectedScripts.Select(script => script.FullPath).ToList(),
-                AutoApplyPatches = false
-            });
-        }
-
-        private void AddScript(string path)
+        var result = new HashSet<EPatchType>();
+        if (ActivateProBox.IsChecked == true)
         {
-            var fullPath = Path.GetFullPath(path);
-            if (_selectedScripts.Any(script => string.Equals(script.FullPath, fullPath, StringComparison.OrdinalIgnoreCase)))
-            {
-                return;
-            }
-
-            _selectedScripts.Add(new SelectedScript(fullPath));
+            result.Add(EPatchType.ActivatePro);
         }
 
-        private static bool IsJavaScriptFile(string path)
+        if (DisableUpdateBox.IsChecked == true)
         {
-            return File.Exists(path) && string.Equals(Path.GetExtension(path), JavaScriptFileExtension, StringComparison.OrdinalIgnoreCase);
+            result.Add(EPatchType.DisableUpdates);
         }
 
-        private void UpdateScriptsEmptyState()
+        if (DevToolsHotkeyBox.IsChecked == true)
         {
-            NoScriptsText.Visibility = _selectedScripts.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            result.Add(EPatchType.DevToolsOnF12);
         }
 
-        private sealed class SelectedScript
+        if (RemoteWebPanelPreviewBox.IsChecked == true)
         {
-            public SelectedScript(string fullPath)
-            {
-                FullPath = fullPath;
-                FileName = Path.GetFileName(fullPath);
-            }
-
-            public string FullPath { get; }
-
-            public string FileName { get; }
+            result.Add(EPatchType.RemoteWebPanelPreview);
         }
+
+        _onApply(new PatchConfig
+        {
+            PatchTypes = result,
+            CustomScriptPaths = _selectedScripts.Select(script => script.FullPath).ToList(),
+            AutoApplyPatches = false
+        });
+    }
+
+    private void AddScript(string path)
+    {
+        var fullPath = Path.GetFullPath(path);
+        if (_selectedScripts.Any(script => string.Equals(script.FullPath, fullPath, StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
+        }
+
+        _selectedScripts.Add(new SelectedScript(fullPath));
+    }
+
+    private static bool IsJavaScriptFile(string path)
+    {
+        return File.Exists(path) && string.Equals(Path.GetExtension(path), JavaScriptFileExtension, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void UpdateScriptsEmptyState()
+    {
+        NoScriptsText.Visibility = _selectedScripts.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private sealed class SelectedScript
+    {
+        public SelectedScript(string fullPath)
+        {
+            FullPath = fullPath;
+            FileName = Path.GetFileName(fullPath);
+        }
+
+        public string FullPath { get; }
+
+        public string FileName { get; }
     }
 }
