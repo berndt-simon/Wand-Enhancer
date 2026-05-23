@@ -1,10 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Windows;
-using WandEnhancer.Core;
+﻿using System.Windows;
 using WandEnhancer.Core.Services;
-using WandEnhancer.View.MainWindow;
-using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace WandEnhancer;
 

@@ -2,9 +2,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using WandEnhancer.Core;
 using WandEnhancer.Core.Services;
-using WandEnhancer.View.MainWindow;
 
 namespace WandEnhancer.View.Popups;
 

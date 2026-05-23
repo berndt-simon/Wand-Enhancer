@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using WandEnhancer.Models;
 
 namespace WandEnhancer;
 
