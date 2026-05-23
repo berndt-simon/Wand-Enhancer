@@ -31,13 +31,13 @@ namespace WandEnhancer
         }
         
         
-        private static void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
         {
             MessageBox.Show(e.Exception.ToString());
             Environment.Exit(1);
         }
 
-        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private static void OnUnhandledException(object? sender, UnhandledExceptionEventArgs e)
         {
             MessageBox.Show(e.ExceptionObject.ToString());
             Environment.Exit(1);

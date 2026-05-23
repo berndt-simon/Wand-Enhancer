@@ -7,17 +7,17 @@ namespace WandEnhancer.Utils.Win32
     {
         public class ShortcutParams
         {
-            public string FileName { get; set; }
-            public string TargetPath { get; set; }
-            public string Arguments { get; set; }
-            public string WorkingDirectory { get; set; }
-            public string Description { get; set; }
-            public string Hotkey { get; set; }
-            public string IconPath { get; set; }
+            public string? FileName { get; set; }
+            public string? TargetPath { get; set; }
+            public string? Arguments { get; set; }
+            public string? WorkingDirectory { get; set; }
+            public string? Description { get; set; }
+            public string? Hotkey { get; set; }
+            public string? IconPath { get; set; }
         };
-        
-        private static readonly Type m_type        = Type.GetTypeFromProgID("WScript.Shell");
-        private static readonly object m_shell     = Activator.CreateInstance(m_type);
+
+        private static readonly Type m_type        = Type.GetTypeFromProgID("WScript.Shell")!;
+        private static readonly object m_shell     = Activator.CreateInstance(m_type)!;
         
         [ComImport, TypeLibType(0x1040), Guid("F935DC23-1CF0-11D0-ADB9-00C04FD58A0B")]
         private interface IWshShortcut
@@ -48,7 +48,7 @@ namespace WandEnhancer.Utils.Win32
         
         public static void CreateShortcut(string fileName, string targetPath, string arguments, string workingDirectory, string description, string iconPath)
         {
-            IWshShortcut shortcut     = (IWshShortcut)m_type.InvokeMember("CreateShortcut", System.Reflection.BindingFlags.InvokeMethod, null, m_shell, new object[] { fileName });
+            IWshShortcut shortcut     = (IWshShortcut)m_type.InvokeMember("CreateShortcut", System.Reflection.BindingFlags.InvokeMethod, null, m_shell, new object[] { fileName })!;
             shortcut.Description      = description;
             shortcut.TargetPath       = targetPath;
             shortcut.WorkingDirectory = workingDirectory;

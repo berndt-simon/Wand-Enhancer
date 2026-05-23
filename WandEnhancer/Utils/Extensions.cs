@@ -8,7 +8,7 @@ namespace WandEnhancer.Utils
 {
     public static class Extensions
     {
-        public static WeModConfig CheckWeModPath(string versionRoot)
+        public static WeModConfig? CheckWeModPath(string versionRoot)
         {
             try
             {
@@ -36,9 +36,9 @@ namespace WandEnhancer.Utils
             return null;
         }
         
-        public static WeModConfig FindWeMod()
+        public static WeModConfig? FindWeMod()
         {
-            string localAppDataPath = Environment.GetEnvironmentVariable("LOCALAPPDATA");
+            string? localAppDataPath = Environment.GetEnvironmentVariable("LOCALAPPDATA");
             
             foreach (var folder in Constants.WeModBrandNames)
             {
@@ -64,7 +64,7 @@ namespace WandEnhancer.Utils
             return System.Convert.ToBase64String(plainTextBytes);
         }
 
-        public static WeModConfig FindLatestWeMod(string root)
+        public static WeModConfig? FindLatestWeMod(string root)
         {
             var appFolders = Directory.EnumerateDirectories(root)
                 .Select(folderPath => new DirectoryInfo(folderPath))

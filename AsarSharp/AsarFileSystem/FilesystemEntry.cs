@@ -7,7 +7,7 @@ namespace AsarSharp.AsarFileSystem
     public class FilesystemEntry
     {
         [JsonPropertyName("files")]
-        public Dictionary<string, FilesystemEntry> Files { get; set; }
+        public Dictionary<string, FilesystemEntry>? Files { get; set; }
 
 
         [JsonPropertyName("executable")]
@@ -17,7 +17,7 @@ namespace AsarSharp.AsarFileSystem
         public long? Size { get; set; }
 
         [JsonPropertyName("offset")]
-        public string Offset { get; set; }
+        public string? Offset { get; set; }
 
         // Serialization surrogate: emit "unpacked" only when true (replaces Newtonsoft ShouldSerializeUnpacked).
         // With JsonIgnoreCondition.WhenWritingDefault, a null value is omitted and true is written.
@@ -29,10 +29,10 @@ namespace AsarSharp.AsarFileSystem
         }
 
         [JsonPropertyName("integrity")]
-        public IntegrityHelper.FileIntegrity Integrity { get; set; }
+        public IntegrityHelper.FileIntegrity? Integrity { get; set; }
 
         [JsonPropertyName("link")]
-        public string Link { get; set; }
+        public string? Link { get; set; }
 
         [JsonIgnore]
         public bool? Unpacked { get; set; }

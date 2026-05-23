@@ -10,7 +10,7 @@ namespace AsarSharp
 {
     public class CreateOptions
     {
-        public Regex Unpack { get; set; }
+        public Regex? Unpack { get; set; }
     }
 
     public class AsarCreator

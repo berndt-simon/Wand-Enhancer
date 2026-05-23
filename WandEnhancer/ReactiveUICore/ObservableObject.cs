@@ -5,11 +5,11 @@ namespace WandEnhancer.ReactiveUICore
 {
     public class ObservableObject : INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected void OnPropertyChanged([CallerMemberName] string name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        protected void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        protected virtual bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        protected virtual bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
         {
             if (Equals(field, value)) return false;
             field = value;

@@ -102,7 +102,7 @@ namespace AsarSharp.Utils
             if (string.IsNullOrEmpty(path))
                 return ".";
 
-            string result = Path.GetDirectoryName(path);
+            string? result = Path.GetDirectoryName(path);
 
             if (string.IsNullOrEmpty(result))
                 return ".";

@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.Win32;
 using WandEnhancer.Core;
 using WandEnhancer.Models;
 using WandEnhancer.ReactiveUICore;
@@ -20,9 +21,9 @@ namespace WandEnhancer.View.MainWindow
         public ObservableCollection<LogEntry> LogList { get; set; } = new ObservableCollection<LogEntry>();
         private static Updater _updater = new Updater();
 
-        private WeModConfig _weModConfig;
+        private WeModConfig? _weModConfig;
 
-        public WeModConfig WeModInfo
+        public WeModConfig? WeModInfo
         {
             get => _weModConfig;
             set
@@ -30,8 +31,8 @@ namespace WandEnhancer.View.MainWindow
                 SetProperty(ref _weModConfig, value);
                 if (value == null) return;
 
-                Log($"WeMod directory found at '{_weModConfig}' ({_weModConfig.ExecutableName})", ELogType.Success);
-                if (File.Exists(Path.Combine(_weModConfig.RootDirectory, "resources", "app.asar.backup")))
+                Log($"WeMod directory found at '{value}' ({value.ExecutableName})", ELogType.Success);
+                if (File.Exists(Path.Combine(value.RootDirectory, "resources", "app.asar.backup")))
                 {
                     Log("WeMod already patched. If you want to patch again, please restore the backup first.",
                         ELogType.Warn);
@@ -77,16 +78,15 @@ namespace WandEnhancer.View.MainWindow
         public RelayCommand CopyLogsCommand { get; }
         public RelayCommand ExportLogsCommand { get; }
 
-        private void OnFolderPathSelection(object obj)
+        private void OnFolderPathSelection(object? obj)
         {
-            using (var dialog = new FolderBrowserDialog())
+            var dialog = new OpenFolderDialog();
             {
-                dialog.SelectedPath = Environment.GetEnvironmentVariable("LOCALAPPDATA");
-                dialog.Description = "Select the WeMod directory";
-                dialog.ShowNewFolderButton = false;
+                dialog.DefaultDirectory = Environment.GetEnvironmentVariable("LOCALAPPDATA");
+                dialog.Title = "Select the WeMod directory";
 
-                if (dialog.ShowDialog() != DialogResult.OK) return;
-                string selectedPath = dialog.SelectedPath;
+                if (dialog.ShowDialog() is true) return;
+                string selectedPath = dialog.FolderName;
                 string fileName = Path.GetFileName(selectedPath);
 
                 var info = Extensions.CheckWeModPath(selectedPath);
@@ -105,8 +105,14 @@ namespace WandEnhancer.View.MainWindow
             }
         }
 
-        private void OnBackupRestoring(object param)
+        private void OnBackupRestoring(object? param)
         {
+            if (WeModInfo == null)
+            {
+                Log("Can't be done. Please specify the directory first.", ELogType.Warn);
+                return;
+            }
+
             var backupPath = Path.Combine(WeModInfo.RootDirectory, "resources", "app.asar.backup");
             if (!File.Exists(backupPath))
             {
@@ -141,9 +147,10 @@ namespace WandEnhancer.View.MainWindow
             IsPatchEnabled = true;
         }
 
-        private void OnPatching(object param)
+        private void OnPatching(object? param)
         {
-            if (WeModInfo == null)
+            var weMod = WeModInfo;
+            if (weMod == null)
             {
                 Log("Can't be done. Please specify the directory first.", ELogType.Warn);
                 return;
@@ -157,7 +164,7 @@ namespace WandEnhancer.View.MainWindow
                 {
                     try
                     {
-                        new Enhancer(WeModInfo, Log, config).Patch();
+                        new Enhancer(weMod, Log, config).Patch();
                         AlreadyPatched = true;
                     }
                     catch (Exception e)
@@ -185,7 +192,7 @@ namespace WandEnhancer.View.MainWindow
             });
         }
 
-        private async void OnUpdate(object param)
+        private async void OnUpdate(object? param)
         {
             var updateInfo = await _updater.GetUpdateInfoAsync();
             if (updateInfo == null)
@@ -194,7 +201,7 @@ namespace WandEnhancer.View.MainWindow
                 return;
             }
 
-            MainWindow.Instance.OpenPopup(new UpdatePopup(Constants.Version.ToString(), updateInfo.Version,
+            MainWindow.Instance.OpenPopup(new UpdatePopup(Constants.Version?.ToString(), updateInfo.Version,
                 updateInfo.LatestNotes, () =>
             {
                 MainWindow.Instance.ClosePopup();
@@ -215,7 +222,7 @@ namespace WandEnhancer.View.MainWindow
             }, () => _updater.GetFullChangelogAsync()), Application.Current.FindResource("up_popup_title") as string);
         }
 
-        private void OnOpenSettings(object param)
+        private void OnOpenSettings(object? param)
         {
             MainWindow.Instance.OpenPopup(new SettingsPopup(), Application.Current.FindResource("settings_title") as string);
         }
@@ -230,7 +237,7 @@ namespace WandEnhancer.View.MainWindow
             return builder.ToString();
         }
 
-        private void OnCopyLogs(object param)
+        private void OnCopyLogs(object? param)
         {
             if (LogList.Count == 0)
             {
@@ -248,7 +255,7 @@ namespace WandEnhancer.View.MainWindow
             }
         }
 
-        private void OnExportLogs(object param)
+        private void OnExportLogs(object? param)
         {
             if (LogList.Count == 0)
             {

@@ -8,20 +8,20 @@ namespace WandEnhancer.View.Popups
     public partial class UpdatePopup : UserControl
     {
         private readonly Action _onUpdate;
-        private readonly Func<Task<string>> _loadFullChangelog;
+        private readonly Func<Task<string?>>? _loadFullChangelog;
         private readonly string _latestNotes;
-        private string _fullChangelog;
+        private string? _fullChangelog;
         private bool _showingFullChangelog;
 
-        public UpdatePopup(string currentVersion, string latestVersion, string latestNotes, Action onUpdate,
-            Func<Task<string>> loadFullChangelog)
+        public UpdatePopup(string? currentVersion, string? latestVersion, string? latestNotes, Action onUpdate,
+            Func<Task<string?>>? loadFullChangelog)
         {
             _onUpdate = onUpdate;
             _loadFullChangelog = loadFullChangelog;
             InitializeComponent();
 
-            CurrentVersionValue.Text = currentVersion;
-            LatestVersionValue.Text = latestVersion;
+            CurrentVersionValue.Text = currentVersion ?? string.Empty;
+            LatestVersionValue.Text = latestVersion ?? string.Empty;
             _latestNotes = string.IsNullOrWhiteSpace(latestNotes)
                 ? GetResourceText("up_release_notes_unavailable")
                 : latestNotes;
@@ -81,7 +81,7 @@ namespace WandEnhancer.View.Popups
             _showingFullChangelog = true;
         }
 
-        private void SetNotesText(string text)
+        private void SetNotesText(string? text)
         {
             NotesTextBlock.Text = text ?? string.Empty;
             NotesScrollViewer.ScrollToTop();

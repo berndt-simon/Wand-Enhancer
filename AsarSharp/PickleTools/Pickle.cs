@@ -24,7 +24,7 @@ namespace AsarSharp.PickleTools
         private long _capacityAfterHeader;
         private int _writeOffset;
 
-        private Pickle(byte[] buffer = null)
+        private Pickle(byte[]? buffer = null)
         {
             if (buffer != null)
             {

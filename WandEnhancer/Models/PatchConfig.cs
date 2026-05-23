@@ -17,23 +17,23 @@ namespace WandEnhancer.Models
     
     public sealed class PatchConfig
     {
-        private string _path;
-        public HashSet<EPatchType> PatchTypes { get; set; }
+        private string? _path;
+        public HashSet<EPatchType> PatchTypes { get; set; } = new HashSet<EPatchType>();
 
         public List<string> CustomScriptPaths { get; set; } = new List<string>();
-        
-        public bool AutoApplyPatches { get; set; }
-        
-        [JsonIgnore]
-        public WeModConfig AppProps { get; private set; }
 
-        public string Path
+        public bool AutoApplyPatches { get; set; }
+
+        [JsonIgnore]
+        public WeModConfig AppProps { get; private set; } = null!;
+
+        public string? Path
         {
             get => _path;
             set
             {
                 _path = value;
-                AppProps = Extensions.CheckWeModPath(_path) ?? throw new Exception("Invalid WeMod path");
+                AppProps = Extensions.CheckWeModPath(value!) ?? throw new Exception("Invalid WeMod path");
             }
         }
     }

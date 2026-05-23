@@ -99,7 +99,7 @@ namespace AsarSharp
             if (cache.Contains(full)) return;
             Directory.CreateDirectory(full);
             // Mark every ancestor too so siblings skip the syscall.
-            string p = full;
+            string? p = full;
             while (!string.IsNullOrEmpty(p) && cache.Add(p))
             {
                 p = Path.GetDirectoryName(p);
@@ -108,7 +108,7 @@ namespace AsarSharp
 
         private static void EnsureParentDir(string filePath, HashSet<string> cache)
         {
-            string parent = Path.GetDirectoryName(filePath);
+            string? parent = Path.GetDirectoryName(filePath);
             if (string.IsNullOrEmpty(parent)) return;
             EnsureDirectory(parent, cache);
         }
@@ -139,7 +139,7 @@ namespace AsarSharp
             {
                 if (size <= 0) return;
 
-                archive.Position = dataOffset + long.Parse(file.Offset);
+                archive.Position = dataOffset + long.Parse(file.Offset!);
                 long remaining = size;
                 while (remaining > 0)
                 {
@@ -155,24 +155,25 @@ namespace AsarSharp
         private static void ExtractLink(string dest, string fullPath, string destFilename,
             FilesystemEntry file, HashSet<string> dirCache)
         {
-            var linkSrcPath = Extensions.GetDirectoryName(Path.Combine(dest, file.Link));
+            string link = file.Link!;
+            var linkSrcPath = Extensions.GetDirectoryName(Path.Combine(dest, link));
             var linkDestPath = Extensions.GetDirectoryName(destFilename);
             var relativeLinkPath = Extensions.GetRelativePath(linkDestPath, linkSrcPath);
 
             try { File.Delete(destFilename); }
             catch { /* ignore — failing to remove an existing link is non-fatal */ }
 
-            var linkTo = Path.Combine(relativeLinkPath, Path.GetFileName(file.Link));
+            var linkTo = Path.Combine(relativeLinkPath, Path.GetFileName(link));
 
             if (Extensions.GetRelativePath(dest, linkSrcPath).StartsWith(".."))
             {
                 throw new InvalidOperationException(
-                    $"{fullPath}: file \"{file.Link}\" links out of the package to \"{linkSrcPath}\"");
+                    $"{fullPath}: file \"{link}\" links out of the package to \"{linkSrcPath}\"");
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var targetPath = Path.Combine(linkSrcPath, Path.GetFileName(file.Link));
+                var targetPath = Path.Combine(linkSrcPath, Path.GetFileName(link));
                 if (Directory.Exists(targetPath))
                 {
                     EnsureDirectory(destFilename, dirCache);

@@ -61,7 +61,7 @@ namespace AsarSharp.AsarFileSystem
                 if (!json.IsDirectory)
                     throw new Exception($"Unexpected directory state while traversing: {p}");
 
-                if (!json.Files.TryGetValue(seg, out var child))
+                if (!json.Files!.TryGetValue(seg, out var child))
                 {
                     child = new FilesystemEntry { Files = new Dictionary<string, FilesystemEntry>(StringComparer.Ordinal) };
                     json.Files[seg] = child;
@@ -101,7 +101,7 @@ namespace AsarSharp.AsarFileSystem
             void FillFilesFromMetadata(string basePath, FilesystemEntry metadata)
             {
                 if (!metadata.IsDirectory) return;
-                foreach (var entry in metadata.Files)
+                foreach (var entry in metadata.Files!)
                 {
                     string fullPath = Path.Combine(basePath, entry.Key).Replace('\\', '/');
                     string packState = entry.Value.Unpacked == true ? "unpack" : "pack  ";
@@ -111,18 +111,18 @@ namespace AsarSharp.AsarFileSystem
             }
         }
 
-        public FilesystemEntry GetNode(string p, bool followLinks = true)
+        public FilesystemEntry? GetNode(string p, bool followLinks = true)
         {
             p = p.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
             FilesystemEntry node = SearchNodeFromDirectory(Extensions.GetDirectoryName(p));
             string name = Path.GetFileName(p);
 
             if (node.IsLink && followLinks)
-                return GetNode(Path.Combine(node.Link, name));
+                return GetNode(Path.Combine(node.Link!, name));
 
             if (!string.IsNullOrEmpty(name))
             {
-                if (node.IsDirectory && node.Files.TryGetValue(name, out var entry))
+                if (node.IsDirectory && node.Files!.TryGetValue(name, out var entry))
                     return entry;
                 return null;
             }
@@ -132,9 +132,9 @@ namespace AsarSharp.AsarFileSystem
 
         public FilesystemEntry GetFile(string p, bool followLinks = true)
         {
-            FilesystemEntry info = GetNode(p, followLinks);
+            FilesystemEntry? info = GetNode(p, followLinks);
             if (info == null) throw new Exception($"\"{p}\" was not found in this archive");
-            if (info.IsLink && followLinks) return GetFile(info.Link, followLinks);
+            if (info.IsLink && followLinks) return GetFile(info.Link!, followLinks);
             return info;
         }
 
@@ -146,7 +146,7 @@ namespace AsarSharp.AsarFileSystem
         {
             var (parent, name) = SearchNodeFromPathWithParent(p);
             if (string.IsNullOrEmpty(name)) return _header;
-            return parent.Files[name];
+            return parent.Files![name];
         }
 
         public void InsertDirectory(string p, bool unpack)
@@ -157,7 +157,7 @@ namespace AsarSharp.AsarFileSystem
         }
 
         public void InsertFile(string path, bool shouldUnpack, CrawledFileType file,
-            IntegrityHelper.FileIntegrity precomputedIntegrity = null)
+            IntegrityHelper.FileIntegrity? precomputedIntegrity = null)
         {
             var (dirNode, _) = SearchNodeFromPathWithParent(Path.GetDirectoryName(path) ?? path);
             var node = SearchNodeFromPath(path);

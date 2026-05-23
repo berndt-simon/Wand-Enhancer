@@ -14,29 +14,29 @@ namespace WandEnhancer.Utils
 {
     public class UpdateReleaseInfo
     {
-        public string Version { get; set; }
+        public string? Version { get; set; }
 
-        public string LatestNotes { get; set; }
+        public string? LatestNotes { get; set; }
     }
 
     public class GitHubRelease
     {
         public class AssetsType
         {
-            public string Name { get; set; }
+            public string? Name { get; set; }
 
             [JsonPropertyName("browser_download_url")]
-            public string Url { get; set; }
+            public string? Url { get; set; }
         }
 
         [JsonPropertyName("tag_name")]
-        public string TagName { get; set; }
+        public string? TagName { get; set; }
 
         [JsonPropertyName("assets")]
-        public AssetsType[] Assets { get; set; }
+        public AssetsType[]? Assets { get; set; }
 
         [JsonPropertyName("body")]
-        public string Body { get; set; }
+        public string? Body { get; set; }
 
         [JsonPropertyName("published_at")]
         public DateTimeOffset PublishedAt { get; set; }
@@ -45,9 +45,9 @@ namespace WandEnhancer.Utils
     
     public class Updater
     {
-        private GitHubRelease _release = null;
-        private UpdateReleaseInfo _updateInfo = null;
-        private string _fullChangelog = null;
+        private GitHubRelease? _release = null;
+        private UpdateReleaseInfo? _updateInfo = null;
+        private string? _fullChangelog = null;
         private static readonly HttpClient _httpClient = new HttpClient()
         {
             DefaultRequestHeaders =
@@ -99,7 +99,7 @@ namespace WandEnhancer.Utils
             }
         }
 
-        public async Task<UpdateReleaseInfo> GetUpdateInfoAsync()
+        public async Task<UpdateReleaseInfo?> GetUpdateInfoAsync()
         {
             if (_updateInfo != null)
             {
@@ -111,7 +111,7 @@ namespace WandEnhancer.Utils
                 : null;
         }
 
-        public async Task<string> GetFullChangelogAsync()
+        public async Task<string?> GetFullChangelogAsync()
         {
             if (!string.IsNullOrWhiteSpace(_fullChangelog))
             {
@@ -130,14 +130,14 @@ namespace WandEnhancer.Utils
                 throw new Exception("No release found");
             }
             
-            var asset = _release.Assets.FirstOrDefault(o => o.Name.EndsWith(".exe"));
+            var asset = _release.Assets?.FirstOrDefault(o => o.Name?.EndsWith(".exe") == true);
             if(asset == null)
             {
                 throw new Exception("No asset found");
             }
             
             // download to temp
-            var downloadPath = Path.Combine(Path.GetTempPath(), asset.Name);
+            var downloadPath = Path.Combine(Path.GetTempPath(), asset.Name!);
             
             using(var response = await _httpClient.GetAsync(asset.Url))
             using(var fileStream = File.Create(downloadPath))
@@ -186,12 +186,12 @@ namespace WandEnhancer.Utils
             }
         }
 
-        private static Version ParseVersion(string versionTag)
+        private static Version ParseVersion(string? versionTag)
         {
             return new Version(NormalizeVersion(versionTag));
         }
 
-        private static string NormalizeVersion(string versionTag)
+        private static string NormalizeVersion(string? versionTag)
         {
             if (string.IsNullOrWhiteSpace(versionTag))
             {
@@ -201,7 +201,7 @@ namespace WandEnhancer.Utils
             return versionTag.Trim().TrimStart('v', 'V');
         }
 
-        private static string NormalizeText(string text)
+        private static string? NormalizeText(string? text)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -218,12 +218,12 @@ namespace WandEnhancer.Utils
                 .Replace('\r', '\n');
         }
 
-        private static async Task<string> TryLoadFullChangelogAsync()
+        private static async Task<string?> TryLoadFullChangelogAsync()
         {
             return await TryBuildReleaseHistoryAsync();
         }
 
-        private static async Task<string> TryBuildReleaseHistoryAsync()
+        private static async Task<string?> TryBuildReleaseHistoryAsync()
         {
             try
             {
@@ -247,7 +247,7 @@ namespace WandEnhancer.Utils
             }
         }
 
-        private static string BuildReleaseHistory(GitHubRelease[] releases)
+        private static string? BuildReleaseHistory(GitHubRelease[] releases)
         {
             var builder = new StringBuilder();
 

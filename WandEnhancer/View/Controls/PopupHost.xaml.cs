@@ -9,7 +9,7 @@ namespace WandEnhancer.View.Controls
 {
     public partial class PopupHost : Grid
     {
-        internal Action Closed;
+        internal Action? Closed;
 
         public static readonly DependencyProperty PopupContentProperty =
             DependencyProperty.Register("PopupContent", typeof(object), typeof(PopupHost), new PropertyMetadata(null));
@@ -44,13 +44,13 @@ namespace WandEnhancer.View.Controls
             }
         }
         
-        public object PopupContent
+        public object? PopupContent
         {
             get => GetValue(PopupContentProperty);
             set => SetValue(PopupContentProperty, value);
         }
         
-        private void HidePopup(object sender, EventArgs e)
+        private void HidePopup(object? sender, EventArgs? e)
         {
             if (OpenedSemaphore.CurrentCount == 1)
                 return;
@@ -58,7 +58,7 @@ namespace WandEnhancer.View.Controls
             IsOpen = false;
         }
         
-        private void OnClosing(object sender, EventArgs e)
+        private void OnClosing(object? sender, EventArgs e)
         {
             if (PopupContent == null)
                 return;

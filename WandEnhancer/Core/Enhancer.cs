@@ -85,7 +85,7 @@ namespace WandEnhancer.Core
 
             if (patch.Resolver != null)
             {
-                string resolvedField = patch.Resolver.Handler(match.Value);
+                string? resolvedField = patch.Resolver.Handler(match.Value);
                 if (string.IsNullOrEmpty(resolvedField))
                 {
                     throw new Exception($"{prefix} Resolver failed to find field name");
@@ -204,7 +204,7 @@ namespace WandEnhancer.Core
             return patch.CandidateFileNames.Any(candidate => fileName.Equals(candidate, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static bool ContainsSearchHint(string source, string[] searchHints)
+        private static bool ContainsSearchHint(string source, string[]? searchHints)
         {
             if (searchHints == null || searchHints.Length == 0)
             {
@@ -216,7 +216,7 @@ namespace WandEnhancer.Core
 
         private static string FindWorkspacePath(params string[] segments)
         {
-            string current = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string? current = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             while (!string.IsNullOrEmpty(current))
             {
                 string candidate = Path.Combine(new[] { current }.Concat(segments).ToArray());
@@ -250,7 +250,7 @@ namespace WandEnhancer.Core
             }
         }
 
-        private static int CopyJavaScriptFiles(string sourceDir, string destinationDir)
+        private static int CopyJavaScriptFiles(string? sourceDir, string destinationDir)
         {
             if (string.IsNullOrEmpty(sourceDir) || !Directory.Exists(sourceDir))
             {
@@ -328,9 +328,9 @@ namespace WandEnhancer.Core
             return resourceNames.Count;
         }
 
-        private static string FindLocalCustomScriptsPath()
+        private static string? FindLocalCustomScriptsPath()
         {
-            string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string? executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             if (string.IsNullOrEmpty(executableDirectory))
             {
                 return null;
@@ -371,7 +371,7 @@ namespace WandEnhancer.Core
                 return;
             }
 
-            string localCustomScriptsRoot = FindLocalCustomScriptsPath();
+            string? localCustomScriptsRoot = FindLocalCustomScriptsPath();
             string targetRoot = Path.Combine(_unpackedPath, RemotePanelDirectoryName);
             string targetScriptsRoot = Path.Combine(targetRoot, RemoteRendererScriptsDirectoryName);
             string targetBridgePath = Path.Combine(targetRoot, RemoteBridgeTargetFileName);

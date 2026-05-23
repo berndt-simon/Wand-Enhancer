@@ -26,13 +26,13 @@ namespace WandEnhancer.Core.Services
             new CultureInfo("tr-TR")
         };
 
-        private static CultureInfo _currentLanguage;
-        private static ResourceDictionary _englishBaseDictionary;
+        private static CultureInfo? _currentLanguage;
+        private static ResourceDictionary? _englishBaseDictionary;
 
-        public static CultureInfo CurrentLanguage
+        public static CultureInfo? CurrentLanguage
         {
             get => _currentLanguage;
-            set => SetLanguage(value);
+            set => SetLanguage(value!);
         }
 
         public static void Initialize()
@@ -45,7 +45,7 @@ namespace WandEnhancer.Core.Services
 
             // Try to load saved language preference
             var savedLanguage = SettingsManager.LoadSettings()?.Language;
-            CultureInfo targetCulture = null;
+            CultureInfo? targetCulture = null;
 
             if (!string.IsNullOrEmpty(savedLanguage))
             {

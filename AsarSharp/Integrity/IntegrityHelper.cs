@@ -16,16 +16,16 @@ namespace AsarSharp.Integrity
         public class FileIntegrity
         {
             [JsonPropertyName("algorithm")]
-            public string Algorithm { get; set; }
+            public string? Algorithm { get; set; }
 
             [JsonPropertyName("hash")]
-            public string Hash { get; set; }
+            public string? Hash { get; set; }
 
             [JsonPropertyName("blockSize")]
             public int BlockSize { get; set; }
 
             [JsonPropertyName("blocks")]
-            public List<string> Blocks { get; set; }
+            public List<string>? Blocks { get; set; }
         }
 
         public static FileIntegrity CreatePlaceholder(long fileSize)
@@ -44,10 +44,9 @@ namespace AsarSharp.Integrity
             };
         }
 
-        public static FileIntegrity GetFileIntegrity(string path, byte[] reusableBuffer = null)
+        public static FileIntegrity GetFileIntegrity(string path, byte[]? reusableBuffer = null)
         {
-            bool ownBuffer = reusableBuffer == null;
-            if (ownBuffer) reusableBuffer = new byte[BLOCK_SIZE];
+            byte[] buffer = reusableBuffer ?? new byte[BLOCK_SIZE];
 
             using (var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
                        65536, FileOptions.SequentialScan))
@@ -60,10 +59,10 @@ namespace AsarSharp.Integrity
                 var blockHashes = new List<string>(estimatedBlockCount);
                 int bytesRead;
 
-                while ((bytesRead = fileStream.Read(reusableBuffer, 0, reusableBuffer.Length)) > 0)
+                while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
                 {
-                    blockHashes.Add(ToLowerHex(blockHash.ComputeHash(reusableBuffer, 0, bytesRead)));
-                    fileHash.AppendData(reusableBuffer, 0, bytesRead);
+                    blockHashes.Add(ToLowerHex(blockHash.ComputeHash(buffer, 0, bytesRead)));
+                    fileHash.AppendData(buffer, 0, bytesRead);
                 }
 
                 return new FileIntegrity
@@ -84,7 +83,7 @@ namespace AsarSharp.Integrity
             private int _blockFill;
             private readonly List<string> _blockHashes;
 
-            public StreamingHasher(int estimatedBlocks = 0, byte[] sharedBlockBuffer = null)
+            public StreamingHasher(int estimatedBlocks = 0, byte[]? sharedBlockBuffer = null)
             {
                 _fileHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                 _blockHash = SHA256.Create();

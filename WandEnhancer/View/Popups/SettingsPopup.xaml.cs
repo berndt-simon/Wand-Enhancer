@@ -10,7 +10,7 @@ namespace WandEnhancer.View.Popups
 {
     public partial class SettingsPopup : UserControl
     {
-        private CultureInfo _selectedLanguage;
+        private CultureInfo? _selectedLanguage;
 
         public SettingsPopup()
         {
@@ -61,8 +61,8 @@ namespace WandEnhancer.View.Popups
 
         private class LanguageItem
         {
-            public CultureInfo Culture { get; set; }
-            public string DisplayName { get; set; }
+            public CultureInfo Culture { get; set; } = null!;
+            public string DisplayName { get; set; } = null!;
         }
     }
 }

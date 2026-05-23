@@ -10,23 +10,23 @@ namespace WandEnhancer.View.MainWindow
     /// </summary>
     public partial class MainWindow
     {
-        public static MainWindow Instance;
+        public static MainWindow Instance = null!;
         public readonly MainWindowVm ViewModel;
-        
+
         public MainWindow()
         {
             InitializeComponent();
             this.ViewModel = new MainWindowVm(this);
             this.DataContext = ViewModel;
-            VersionLabel.Text = Constants.Version.ToString();
+            VersionLabel.Text = Constants.Version?.ToString() ?? string.Empty;
             Instance = this;
 
         }
-        
-        public void OpenPopup(FrameworkElement content, string title = null)
+
+        public void OpenPopup(FrameworkElement content, string? title = null)
         {
             this.PopupHost.PopupContent = content;
-            PopupHost.Title.Text = title;
+            PopupHost.Title.Text = title ?? string.Empty;
             PopupHost.IsOpen = true;
         }
 

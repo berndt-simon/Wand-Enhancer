@@ -12,20 +12,20 @@ namespace WandEnhancer.Core
 
         public class ResolveContext
         {
-            public string Placeholder { get; set; }
-            public Func<string, string> Handler { get; set; }
+            public string Placeholder { get; set; } = null!;
+            public Func<string, string?> Handler { get; set; } = null!;
         }
 
         public class PatchEntry
         {
-            public Regex Target { get; set; }
-            public string Patch { get; set; }
-            public string Name { get; set; }
+            public Regex Target { get; set; } = null!;
+            public string Patch { get; set; } = null!;
+            public string? Name { get; set; }
             public bool Applied { get; set; }
             public bool SingleMatch { get; set; } = true;
-            public string[] CandidateFileNames { get; set; }
-            public string[] SearchHints { get; set; }
-            public ResolveContext Resolver { get; set; }
+            public string[]? CandidateFileNames { get; set; }
+            public string[]? SearchHints { get; set; }
+            public ResolveContext? Resolver { get; set; }
         }
 
         public static Dictionary<EPatchType, PatchEntry[]> GetInstance()

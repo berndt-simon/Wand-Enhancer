@@ -16,7 +16,7 @@ namespace WandEnhancer.Converters
         protected T True { get; set; }
         protected T False { get; set; }
 
-        public virtual object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public virtual object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             switch (value)
             {
@@ -43,7 +43,7 @@ namespace WandEnhancer.Converters
             }
         }
 
-        public virtual object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public virtual object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             return value is T t && EqualityComparer<T>.Default.Equals(t, True);
         }

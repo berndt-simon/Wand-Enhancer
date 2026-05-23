@@ -6,7 +6,7 @@ namespace WandEnhancer.Core.Services
 {
     public class AppSettings
     {
-        public string Language { get; set; }
+        public string? Language { get; set; }
     }
 
     public static class SettingsManager
@@ -21,7 +21,7 @@ namespace WandEnhancer.Core.Services
             PropertyNameCaseInsensitive = true
         };
 
-        public static AppSettings LoadSettings()
+        public static AppSettings? LoadSettings()
         {
             try
             {

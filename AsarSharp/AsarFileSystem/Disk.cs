@@ -23,20 +23,20 @@ namespace AsarSharp.AsarFileSystem
 
         public class ArchiveHeader
         {
-            public FilesystemEntry Header { get; set; }
-            public string HeaderString { get; set; }
+            public FilesystemEntry Header { get; set; } = null!;
+            public string HeaderString { get; set; } = null!;
             public int HeaderSize { get; set; }
         }
 
         public class FilesystemFilesAndLinks
         {
             public List<BasicFileInfo> Files { get; set; } = new List<BasicFileInfo>();
-            public List<BasicFileInfo> Links { get; set; } = new List<BasicFileInfo>();
+            public List<BasicFileInfo>? Links { get; set; } = new List<BasicFileInfo>();
         }
 
         public class BasicFileInfo
         {
-            public string Filename { get; set; }
+            public string Filename { get; set; } = null!;
             public bool Unpack { get; set; }
         }
 
@@ -60,7 +60,8 @@ namespace AsarSharp.AsarFileSystem
 
                 var headerPickle = Pickle.CreateFromBuffer(headerBuf);
                 var header = headerPickle.CreateIterator().ReadString();
-                var headerObj = JsonSerializer.Deserialize<FilesystemEntry>(header, HeaderJsonOptions);
+                var headerObj = JsonSerializer.Deserialize<FilesystemEntry>(header, HeaderJsonOptions)
+                                ?? throw new Exception("Unable to parse asar header");
 
                 return new ArchiveHeader
                 {
@@ -101,7 +102,7 @@ namespace AsarSharp.AsarFileSystem
             using (var fs = new FileStream(filesystem.GetRootPath(), FileMode.Open, FileAccess.Read,
                        FileShare.Read, 65536, FileOptions.RandomAccess))
             {
-                long offset = 8 + filesystem.GetHeaderSize() + long.Parse(info.Offset);
+                long offset = 8 + filesystem.GetHeaderSize() + long.Parse(info.Offset!);
                 fs.Position = offset;
                 int bytesRead = fs.Read(buffer, 0, (int)size);
                 if (bytesRead != size)
@@ -198,7 +199,7 @@ namespace AsarSharp.AsarFileSystem
             }
         }
 
-        private static void CopyAndHash(string srcPath, Stream dest, byte[] buf, byte[] blockBuf, Filesystem fs)
+        private static void CopyAndHash(string srcPath, Stream? dest, byte[] buf, byte[] blockBuf, Filesystem fs)
         {
             string relPath = Extensions.GetRelativePath(fs.GetRootPath(), srcPath);
             var node = fs.GetNode(relPath, followLinks: false);

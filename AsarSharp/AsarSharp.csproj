@@ -3,8 +3,9 @@
         <TargetFramework>net10.0-windows</TargetFramework>
         <RootNamespace>AsarSharp</RootNamespace>
         <AssemblyName>AsarSharp</AssemblyName>
-        <Nullable>disable</Nullable>
+        <Nullable>enable</Nullable>
         <ImplicitUsings>disable</ImplicitUsings>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>

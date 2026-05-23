@@ -8,14 +8,14 @@ namespace AsarSharp.AsarFileSystem
     public class CrawledFileType
     {
         public FileType Type { get; set; }
-        public FileSystemInfo Stat { get; set; }
-        public TransformedFile Transformed { get; set; }
+        public FileSystemInfo Stat { get; set; } = null!;
+        public TransformedFile? Transformed { get; set; }
     }
 
     public class TransformedFile
     {
-        public string Path { get; set; }
-        public FileSystemInfo Stat { get; set; }
+        public string Path { get; set; } = null!;
+        public FileSystemInfo Stat { get; set; } = null!;
     }
 
     public enum FileType
@@ -27,7 +27,7 @@ namespace AsarSharp.AsarFileSystem
 
     public static class FileSystemCrawler
     {
-        public static CrawledFileType DetermineFileType(string filename)
+        public static CrawledFileType? DetermineFileType(string filename)
         {
             FileAttributes attributes;
             try
